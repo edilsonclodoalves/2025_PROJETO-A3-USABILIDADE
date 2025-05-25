@@ -69,10 +69,3 @@ O sistema atualmente implementa as seguintes funcionalidades nas camadas de back
 *   **Mobile:** Não implementado nesta fase.
 *   **Testes de Usabilidade:** Não realizados nesta fase.
 *   **Observações:** A integração do Login com Google no frontend requer atenção ao fluxo de obtenção e envio do `idToken` para o backend. O relatório de produtos mais vendidos no backend está simulado e precisa ser implementado corretamente com base nos itens efetivamente vendidos (ex: tabela `ItemPedido`).
-
-## 5. Entregáveis
-
-*   Código fonte completo das aplicações Backend e Frontend.
-*   Arquivo `todo.md` com o registro detalhado do progresso e etapas concluídas/puladas.
-*   Esta Ficha Resumo.
-
