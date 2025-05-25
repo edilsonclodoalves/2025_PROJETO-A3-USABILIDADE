@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.lojamobile",
-      "googleServicesFile": "./GoogleService-Info.plist" # Necessário para Google Sign-In no iOS
+      "googleServicesFile": "./GoogleService-Info.plist" 
     },
     "android": {
       "adaptiveIcon": {
@@ -36,6 +36,7 @@
     "extra": {
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID" 
+     }
     }
   }
 }
