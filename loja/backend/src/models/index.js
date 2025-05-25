@@ -4,9 +4,9 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "sorveteria_db",
+  process.env.DB_NAME || "loja",
   process.env.DB_USER || "root",
-  process.env.DB_PASSWORD || "secret",
+  process.env.DB_PASSWORD || "mysql@2025",
   {
     host: process.env.DB_HOST || "localhost",
     dialect: process.env.DB_DIALECT || "mysql",

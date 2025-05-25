@@ -69,3 +69,67 @@ O sistema atualmente implementa as seguintes funcionalidades nas camadas de back
 *   **Mobile:** Não implementado nesta fase.
 *   **Testes de Usabilidade:** Não realizados nesta fase.
 *   **Observações:** A integração do Login com Google no frontend requer atenção ao fluxo de obtenção e envio do `idToken` para o backend. O relatório de produtos mais vendidos no backend está simulado e precisa ser implementado corretamente com base nos itens efetivamente vendidos (ex: tabela `ItemPedido`).
+
+## 5. Como executar o projeto?
+*   Será necessário utilizar um proxy reverso com o nginx, nodejs e msql, estou utilizando o OracleLinux 9 
+*   dnf install nginx nodejs mysql mysql-server
+*
+*   **Configuração do nginx:**
+   # vim /etc/nginx/conf.d/sorveteria.conf
+
+      server {
+          listen 80;
+          server_name localhost;
+    
+          location / {
+              proxy_pass http://localhost:3000;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host $host;
+              proxy_cache_bypass $http_upgrade;
+          }
+          location /api/ {
+              proxy_pass http://localhost:3001/api/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host $host;
+              proxy_cache_bypass $http_upgrade;
+          }
+      }
+
+#  **Recarregar a configuração do nginx**
+## nginx -t 
+# 
+#   **Reinciar o serviço do nginx**
+## systemctl restart nginx
+#    
+#    **Liberar o serviço no selinux**
+## sudo setsebool -P httpd_can_network_connect 1
+#
+#    **Liberar o serviço no firewall**
+## firewall-cmd --permanent --add-service=http
+#
+#    **Recarregar o firewall**
+## firewall-cmd --reload
+#
+#   **Criar o banco no Mysql e configurar a senha de root**
+## mysql -u root -p
+#
+##   mysql> CREATE DATABASE loja;
+##   mysql> ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'mysql@2025';
+##   mysql> FLUSH PRIVILEGES;
+##   mysql> EXIT;
+#
+# **Edite os .env de acordo com o seu cenário**
+# 
+# **Instale o nodemon de forma global**
+## npm install -g nodemon
+#
+# **Instale o node na pasta backend**
+## node install
+#
+## **Instale o node na pasta frontend**
+## node install
+#
