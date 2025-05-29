@@ -10,6 +10,9 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/google-login", authController.googleLogin);
 
+// Rota para obter informações do usuário logado (ex: /me)
+router.get("/me", authenticate, usuarioController.getMe);
+
 // Rotas de Gerenciamento de Usuários (usando usuarioController)
 // Exemplo: Obter todos os usuários (protegido, apenas admin)
 router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers);
@@ -23,8 +26,7 @@ router.put("/:id", authenticate, usuarioController.updateUser);
 // Exemplo: Deletar usuário (protegido, apenas admin)
 router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser);
 
-// Rota para obter informações do usuário logado (ex: /me)
-router.get("/me", authenticate, usuarioController.getMe);
+
 
 module.exports = router;
 
