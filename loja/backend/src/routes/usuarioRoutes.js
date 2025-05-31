@@ -10,6 +10,10 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/google-login", authController.googleLogin);
 
+//Rota para cadastrar usuário do painel admin
+router.post("/", authenticate, authorize(["admin"]), authController.register);
+
+
 // Rota para obter informações do usuário logado (ex: /me)
 router.get("/me", authenticate, usuarioController.getMe);
 
