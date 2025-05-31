@@ -47,10 +47,7 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute roles={['admin']}><Dashboard /></ProtectedRoute>} />
                 <Route path="/relatorios" element={<ProtectedRoute roles={['admin', 'operador']}><Relatorios /></ProtectedRoute>} /> {/* Permitir operador também? */}
                 <Route path="/usuarios" element={<ProtectedRoute roles={['admin']}><Usuarios /></ProtectedRoute>} />
-                {/* Adicionar rota para gerenciar produtos (admin/operador) */}
-                { <Route path="/admin/produtos" element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} />}
-
-                {/* Rota para página não encontrada (opcional) */}
+                <Route path="/admin/produtos" element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} />
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
             </div>
