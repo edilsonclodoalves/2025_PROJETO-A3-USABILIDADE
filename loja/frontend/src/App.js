@@ -15,6 +15,7 @@ import Perfil from './pages/Perfil';
 import Dashboard from './pages/Dashboard';
 import Relatorios from './pages/Relatorios';
 import Usuarios from './pages/Usuarios';
+import AdminProdutos from './pages/AdminProdutos';
 
 // Importar Componentes
 import Navbar from './components/Navbar';
@@ -47,7 +48,7 @@ function App() {
                 <Route path="/relatorios" element={<ProtectedRoute roles={['admin', 'operador']}><Relatorios /></ProtectedRoute>} /> {/* Permitir operador também? */}
                 <Route path="/usuarios" element={<ProtectedRoute roles={['admin']}><Usuarios /></ProtectedRoute>} />
                 {/* Adicionar rota para gerenciar produtos (admin/operador) */}
-                {/* <Route path="/admin/produtos" element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} /> */}
+                { <Route path="/admin/produtos" element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} />}
 
                 {/* Rota para página não encontrada (opcional) */}
                 {/* <Route path="*" element={<NotFound />} /> */}
