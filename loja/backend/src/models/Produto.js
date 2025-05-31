@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const Produto = sequelize.define("Produto", {
+  const Produto = sequelize.define("Produto", { //Será criada Produtos o sequelize pluraliza automaticamente o nome do modelo e o utiliza como nome da tabela;
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,

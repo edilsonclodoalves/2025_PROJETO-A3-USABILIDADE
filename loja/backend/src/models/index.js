@@ -4,12 +4,12 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "loja",
-  process.env.DB_USER || "root",
-  process.env.DB_PASSWORD || "mysql@2025",
+  process.env.DB_NAME || "loja", //valor padrão caso não seja encontrado no .env
+  process.env.DB_USER || "root", //valor padrão caso não seja encontrado no .env
+  process.env.DB_PASSWORD || "mysql@2025", //valor padrão caso não seja encontrado no .env
   {
-    host: process.env.DB_HOST || "localhost",
-    dialect: process.env.DB_DIALECT || "mysql",
+    host: process.env.DB_HOST || "localhost", //valor padrão caso não seja encontrado no .env
+    dialect: process.env.DB_DIALECT || "mysql", //valor padrão caso não seja encontrado no .env
     logging: false, // Desativar logs SQL no console
   }
 );

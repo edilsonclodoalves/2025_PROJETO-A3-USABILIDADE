@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 
 module.exports = (sequelize) => {
-  const Usuario = sequelize.define("Usuario", {
+  const Usuario = sequelize.define("Usuario", { //Será criada Usuarios o sequelize pluraliza automaticamente o nome do modelo e o utiliza como nome da tabela;
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
