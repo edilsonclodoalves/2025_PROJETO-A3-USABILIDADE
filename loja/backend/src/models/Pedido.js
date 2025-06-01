@@ -8,14 +8,14 @@ module.exports = (sequelize) => {
       autoIncrement: true,
     },
     // UsuarioId será adicionado automaticamente pela associação
-    // UsuarioId: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: {
-    //     model: 'Usuarios', // Nome da tabela de usuários
-    //     key: 'id'
-    //   }
-    // },
+    UsuarioId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+      model: 'Usuarios', // Nome da tabela de usuários
+      key: 'id'
+      }
+    },
     valorTotal: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -39,6 +39,11 @@ module.exports = (sequelize) => {
       set(value) {
         this.setDataValue('enderecoEntrega', JSON.stringify(value));
       }
+    },
+    dataPedido: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
     // Adicionar campos para itens do pedido (pode ser uma tabela separada ItemPedido)
     // ou um JSON com os detalhes dos itens, dependendo da complexidade.

@@ -4,25 +4,29 @@ const pedidoController = require("../controllers/pedidoController");
 const { authenticate } = require("../middlewares/auth");
 const { authorize } = require("../middlewares/authorize");
 
-// Todas as rotas abaixo exigem autenticação
+// Todas as rotas exigem autenticação
 router.use(authenticate);
 
-// Criar um novo pedido a partir do carrinho
+// Criar um novo pedido
 router.post("/", pedidoController.createPedido);
 
 // Obter todos os pedidos do usuário logado
 router.get("/me", pedidoController.getPedidosUsuario);
 
-// Obter um pedido específico pelo ID (usuário logado ou admin)
+// Obter um pedido específico pelo ID (usuário logado, admin ou operador)
 router.get("/:id", pedidoController.getPedidoById);
 
-// --- Rotas de Admin/Operador ---
+// Cancelar um pedido (usuário dono do pedido)
+router.patch("/:id/cancel", pedidoController.cancelPedido);
 
-// Obter todos os pedidos (para gerenciamento)
+// Editar um pedido (apenas admin)
+router.put("/:id", authorize(["admin"]), pedidoController.editPedido);
+
+// Deletar um pedido (apenas admin)
+router.delete("/:id", authorize(["admin"]), pedidoController.deletePedido);
+
+// Rotas de Admin/Operador
 router.get("/admin/all", authorize(["admin", "operador"]), pedidoController.getAllPedidosAdmin);
-
-// Atualizar status de um pedido
 router.patch("/:id/status", authorize(["admin", "operador"]), pedidoController.updatePedidoStatus);
 
 module.exports = router;
-
