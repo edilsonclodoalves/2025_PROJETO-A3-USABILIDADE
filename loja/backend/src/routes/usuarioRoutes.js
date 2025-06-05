@@ -30,6 +30,9 @@ router.put("/:id", authenticate, usuarioController.updateUser);
 // Exemplo: Deletar usuário (protegido, apenas admin)
 router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser);
 
+// Reset de senha (protegido, admin ou próprio usuário)
+router.put("/:id/reset-password", authenticate, usuarioController.resetPassword);
+
 
 
 module.exports = router;

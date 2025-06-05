@@ -126,3 +126,48 @@ exports.getMe = async (req, res) => {
   }
 };
 
+
+// Reset de senha (Admin ou próprio usuário)
+exports.resetPassword = async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const loggedInUserId = req.user.id;
+  const loggedInUserRole = req.user.role;
+  const { novaSenha } = req.body;
+
+  try {
+    // Verificar se a nova senha foi fornecida
+    if (!novaSenha || novaSenha.trim() === "") {
+      return res.status(400).json({ message: "Nova senha é obrigatória." });
+    }
+
+    // Validar comprimento mínimo da senha
+    if (novaSenha.length < 6) {
+      return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
+    }
+
+    // Verificar permissão: admin pode resetar qualquer senha, usuário comum só a própria
+    if (loggedInUserRole !== "admin" && loggedInUserId !== userId) {
+      return res.status(403).json({ message: "Acesso negado. Você só pode alterar sua própria senha." });
+    }
+
+    // Buscar o usuário
+    const user = await Usuario.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    // Atualizar a senha (o hook beforeUpdate irá fazer o hash automaticamente)
+    user.senha = novaSenha;
+    await user.save();
+
+    res.status(200).json({ 
+      message: "Senha alterada com sucesso.",
+      userId: user.id 
+    });
+
+  } catch (error) {
+    console.error("Erro ao resetar senha:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+
