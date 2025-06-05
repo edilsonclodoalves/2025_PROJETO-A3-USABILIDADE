@@ -136,4 +136,3 @@ exports.getProdutosMaisVendidos = async (req, res) => {
 };
 
 // Outros relatórios podem ser adicionados aqui (ex: clientes que mais compram, etc.)
-

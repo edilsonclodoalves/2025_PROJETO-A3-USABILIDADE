@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 
 module.exports = (sequelize) => {
-  const Usuario = sequelize.define("Usuario", { //Será criada Usuarios o sequelize pluraliza automaticamente o nome do modelo e o utiliza como nome da tabela;
+  const Usuario = sequelize.define("Usuario", {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -20,6 +20,16 @@ module.exports = (sequelize) => {
         isEmail: true,
       },
     },
+    telefone: {
+      type: DataTypes.STRING,
+      allowNull: true, // Pode ser alterado para false se o telefone for obrigatório
+      validate: {
+        is: {
+          args: [/^\d{11}$/], // Valida formato (XX) XXXX-XXXX ou (XX) XXXXX-XXXX
+          msg: "Telefone deve estar no formato (XX) XXXX-XXXX ou (XX) XXXXX-XXXX",
+        },
+      },
+    },
     senha: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -29,12 +39,12 @@ module.exports = (sequelize) => {
       defaultValue: "cliente",
       allowNull: false,
     },
-    googleId: { // Para login social com Google
+    googleId: {
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
     },
-    // Outros campos como telefone, endereço podem ser adicionados aqui
+    
   }, {
     hooks: {
       beforeCreate: async (usuario) => {
@@ -50,7 +60,7 @@ module.exports = (sequelize) => {
         }
       },
     },
-    timestamps: true, // Adiciona createdAt e updatedAt
+    timestamps: true,
   });
 
   // Método para comparar senhas
@@ -58,10 +68,5 @@ module.exports = (sequelize) => {
     return bcrypt.compare(candidatePassword, this.senha);
   };
 
-  // Associações (definidas em models/index.js)
-  // Usuario.hasMany(models.Pedido);
-  // Usuario.hasOne(models.Carrinho);
-
   return Usuario;
 };
-

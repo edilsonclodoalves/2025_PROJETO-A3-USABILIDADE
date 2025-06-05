@@ -65,4 +65,3 @@ module.exports = (sequelize) => {
 
   return Pedido;
 };
-

@@ -1,36 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
-const usuarioController = require("../controllers/usuarioController"); // Será criado depois
-const { authenticate } = require("../middlewares/auth"); // Será criado depois
-const { authorize } = require("../middlewares/authorize"); // Será criado depois
+const usuarioController = require("../controllers/usuarioController");
+const { authenticate } = require("../middlewares/auth");
+const { authorize } = require("../middlewares/authorize");
 
-// Rotas de Autenticação (usando authController)
-router.post("/register", authController.register);
-router.post("/login", authController.login);
-router.post("/google-login", authController.googleLogin);
+// Rotas de Autenticação
+router.post("/register", authController.register); // Cadastro de usuário padrão
+router.post("/login", authController.login); // Login de usuário
+router.post("/google-login", authController.googleLogin); // Login com Google
 
-//Rota para cadastrar usuário do painel admin
-router.post("/", authenticate, authorize(["admin"]), authController.register);
+// Rota para cadastrar usuário pelo painel admin
+router.post("/admin/create", authenticate, authorize(["admin"]), authController.register); // Cadastro admin
 
-
-// Rota para obter informações do usuário logado (ex: /me)
+// Rota para obter informações do usuário logado (/usuarios/me)
 router.get("/me", authenticate, usuarioController.getMe);
 
-// Rotas de Gerenciamento de Usuários (usando usuarioController)
-// Exemplo: Obter todos os usuários (protegido, apenas admin)
-router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers);
-
-// Exemplo: Obter usuário por ID (protegido, admin ou próprio usuário)
-router.get("/:id", authenticate, usuarioController.getUserById); // A lógica de permissão estará no controller
-
-// Exemplo: Atualizar usuário (protegido, admin ou próprio usuário)
-router.put("/:id", authenticate, usuarioController.updateUser);
-
-// Exemplo: Deletar usuário (protegido, apenas admin)
-router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser);
-
-
+// Rotas de Gerenciamento de Usuários
+router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers); // Listar todos os usuários (admin)
+router.get("/:id", authenticate, usuarioController.getUserById); // Obter usuário por ID (admin ou próprio usuário)
+router.put("/:id", authenticate, usuarioController.updateUser); // Atualizar usuário (admin ou próprio usuário)
+router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser); // Deletar usuário (admin)
 
 module.exports = router;
-

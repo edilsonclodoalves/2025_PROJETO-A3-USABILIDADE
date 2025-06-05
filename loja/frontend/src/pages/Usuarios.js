@@ -1,41 +1,343 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
-import { Modal, Button, Form, Spinner, Alert, Badge } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Modal, Button, Form, Spinner, Alert, Badge } from "react-bootstrap";
+import InputMask from "react-input-mask";
+import api from "../services/api";
+
+// ============================================================================
+// UTILITÁRIOS E VALIDAÇÕES
+// ============================================================================
+
+const formatTelefone = (telefone) => {
+  if (!telefone) return "Não informado";
+  const numeros = telefone.replace(/\D/g, "");
+  if (numeros.length !== 11) return telefone;
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+};
+
+const validarEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validarTelefone = (telefone) => !telefone || /^\(\d{2}\)\s?\d{5}-\d{4}$/.test(telefone);
+const validarSenha = (senha) => !senha || senha.length >= 6;
+const limparTelefone = (telefone) => telefone?.replace(/\D/g, "") || null;
+
+const validarFormulario = (dados, isEdit = false) => {
+  const erros = [];
+  
+  if (!dados.nome?.trim()) erros.push("Nome é obrigatório");
+  if (!dados.email?.trim()) erros.push("Email é obrigatório");
+  if (!dados.role) erros.push("Papel é obrigatório");
+  if (!isEdit && !dados.senha) erros.push("Senha é obrigatória");
+  
+  if (dados.email && !validarEmail(dados.email)) erros.push("Email inválido");
+  if (dados.senha && !validarSenha(dados.senha)) erros.push("Senha deve ter pelo menos 6 caracteres");
+  if (dados.telefone && !validarTelefone(dados.telefone)) erros.push("Telefone deve estar no formato (XX) XXXXX-XXXX");
+  
+  return erros;
+};
+
+// ============================================================================
+// HOOKS CUSTOMIZADOS
+// ============================================================================
+
+const useForm = (initialState) => {
+  const [formData, setFormData] = useState(initialState);
+  
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  }, []);
+  
+  const reset = useCallback(() => setFormData(initialState), [initialState]);
+  const setData = useCallback((data) => setFormData(data), []);
+  
+  return { formData, handleChange, reset, setData };
+};
+
+const useModal = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  const open = useCallback(() => {
+    setIsOpen(true);
+    setError("");
+  }, []);
+  
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setError("");
+    setLoading(false);
+  }, []);
+  
+  return { isOpen, loading, error, open, close, setLoading, setError };
+};
+
+// ============================================================================
+// COMPONENTES
+// ============================================================================
+
+const LoadingSpinner = ({ message = "Carregando..." }) => (
+  <div className="text-center p-4">
+    <Spinner animation="border" role="status">
+      <span className="visually-hidden">{message}</span>
+    </Spinner>
+  </div>
+);
+
+const UserFormFields = ({ formData, handleChange, isEdit = false }) => (
+  <>
+    <Form.Group className="mb-3">
+      <Form.Label>Nome</Form.Label>
+      <Form.Control
+        type="text"
+        name="nome"
+        value={formData.nome}
+        onChange={handleChange}
+        required
+        placeholder="Digite o nome do usuário"
+      />
+    </Form.Group>
+    
+    <Form.Group className="mb-3">
+      <Form.Label>Email</Form.Label>
+      <Form.Control
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        placeholder="exemplo@dominio.com"
+      />
+    </Form.Group>
+    
+    <Form.Group className="mb-3">
+      <Form.Label>Telefone (opcional)</Form.Label>
+      <InputMask
+        mask="(99) 99999-9999"
+        value={formData.telefone}
+        onChange={handleChange}
+      >
+        {(inputProps) => (
+          <Form.Control
+            {...inputProps}
+            type="text"
+            name="telefone"
+            placeholder="(XX) XXXXX-XXXX"
+          />
+        )}
+      </InputMask>
+      <Form.Text className="text-muted">
+        Use o formato (XX) XXXXX-XXXX{isEdit ? ". Deixe em branco para remover." : "."}
+      </Form.Text>
+    </Form.Group>
+    
+    <Form.Group className="mb-3">
+      <Form.Label>{isEdit ? "Nova Senha (opcional)" : "Senha"}</Form.Label>
+      <Form.Control
+        type="password"
+        name="senha"
+        value={formData.senha}
+        onChange={handleChange}
+        required={!isEdit}
+        placeholder={isEdit ? "Deixe em branco para manter a senha atual" : "Mínimo 6 caracteres"}
+        minLength={6}
+      />
+      {isEdit && (
+        <Form.Text className="text-muted">
+          A senha deve ter pelo menos 6 caracteres. Deixe em branco para não alterar.
+        </Form.Text>
+      )}
+    </Form.Group>
+    
+    <Form.Group className="mb-3">
+      <Form.Label>Papel</Form.Label>
+      <Form.Select
+        name="role"
+        value={formData.role}
+        onChange={handleChange}
+        required
+      >
+        <option value="cliente">Cliente</option>
+        <option value="operador">Operador</option>
+        <option value="admin">Admin</option>
+      </Form.Select>
+    </Form.Group>
+  </>
+);
+
+const UserModal = ({ 
+  show, 
+  onHide, 
+  title, 
+  formData, 
+  handleChange, 
+  onSubmit, 
+  loading, 
+  error, 
+  submitText,
+  isEdit = false 
+}) => (
+  <Modal show={show} onHide={onHide} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>{title}</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Form>
+        <UserFormFields 
+          formData={formData} 
+          handleChange={handleChange} 
+          isEdit={isEdit} 
+        />
+      </Form>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="secondary" onClick={onHide} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="primary" onClick={onSubmit} disabled={loading}>
+        {loading ? (
+          <>
+            <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+            {" "}{submitText.loading}
+          </>
+        ) : (
+          submitText.default
+        )}
+      </Button>
+    </Modal.Footer>
+  </Modal>
+);
+
+const DeleteConfirmModal = ({ show, onHide, user, onConfirm, loading, error }) => (
+  <Modal show={show} onHide={onHide} centered size="sm">
+    <Modal.Header closeButton>
+      <Modal.Title>Confirmar Exclusão</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      {error && <Alert variant="danger">{error}</Alert>}
+      Tem certeza que deseja excluir o usuário{" "}
+      <strong>{user?.nome}</strong> (ID: {user?.id})? Esta ação não pode ser desfeita.
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="secondary" onClick={onHide} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="danger" onClick={onConfirm} disabled={loading}>
+        {loading ? (
+          <>
+            <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+            {" "}Excluindo...
+          </>
+        ) : (
+          "Excluir"
+        )}
+      </Button>
+    </Modal.Footer>
+  </Modal>
+);
+
+const UserTable = ({ usuarios, onEdit, onDelete }) => {
+  const getRoleBadgeVariant = (role) => {
+    switch (role) {
+      case "admin": return "danger";
+      case "operador": return "warning";
+      default: return "secondary";
+    }
+  };
+
+  return (
+    <table className="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Papel</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {usuarios.map((usuario) => (
+          <tr key={usuario.id}>
+            <td>{usuario.id}</td>
+            <td>{usuario.nome}</td>
+            <td>{usuario.email}</td>
+            <td>{formatTelefone(usuario.telefone)}</td>
+            <td>
+              <Badge bg={getRoleBadgeVariant(usuario.role)}>
+                {usuario.role}
+              </Badge>
+            </td>
+            <td>
+              <Button
+                variant="warning"
+                size="sm"
+                className="me-2"
+                onClick={() => onEdit(usuario)}
+              >
+                <i className="bi bi-pencil-fill"></i> Editar
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => onDelete(usuario)}
+              >
+                <i className="bi bi-trash-fill"></i> Excluir
+              </Button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
 
 const Usuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  // Estados para o Modal de Edição
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [error, setError] = useState("");
   const [editingUser, setEditingUser] = useState(null);
-  const [editFormData, setEditFormData] = useState({ nome: '', email: '', role: '', senha: '' });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState('');
 
-  // Estado para confirmação de exclusão
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Modais
+  const createModal = useModal();
+  const editModal = useModal();
+  const deleteModal = useModal();
   const [deletingUser, setDeletingUser] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
 
-  // Estados para o modal de criação
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createFormData, setCreateFormData] = useState({ nome: '', email: '', role: 'cliente', senha: '' });
-  const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState('');
+  // Formulários
+  const createForm = useForm({
+    nome: "",
+    email: "",
+    telefone: "",
+    role: "cliente",
+    senha: "",
+  });
 
-  // Função para buscar usuários
+  const editForm = useForm({
+    nome: "",
+    email: "",
+    telefone: "",
+    role: "",
+    senha: "",
+  });
+
+  // ============================================================================
+  // EFEITOS E FUNÇÕES DE API
+  // ============================================================================
+
   const fetchUsuarios = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await api.get('/usuarios');
+      const response = await api.get("/usuarios");
       setUsuarios(response.data);
     } catch (err) {
-      console.error("Erro ao buscar usuários:", err);
-      setError('Falha ao carregar usuários. Você tem permissão para acessar esta página?');
+      setError("Falha ao carregar usuários. Você tem permissão para acessar esta página?");
     }
     setLoading(false);
   }, []);
@@ -44,133 +346,149 @@ const Usuarios = () => {
     fetchUsuarios();
   }, [fetchUsuarios]);
 
-  // Funções para o Modal de Edição
-  const handleShowEditModal = (usuario) => {
+  // ============================================================================
+  // HANDLERS DOS MODAIS
+  // ============================================================================
+
+  const handleOpenCreateModal = useCallback(() => {
+    createForm.reset();
+    createModal.open();
+  }, [createForm, createModal]);
+
+  const handleOpenEditModal = useCallback((usuario) => {
     setEditingUser(usuario);
-    setEditFormData({ nome: usuario.nome, email: usuario.email, role: usuario.role, senha: '' });
-    setEditError('');
-    setShowEditModal(true);
-  };
+    editForm.setData({
+      nome: usuario.nome,
+      email: usuario.email,
+      telefone: usuario.telefone || "",
+      role: usuario.role,
+      senha: "",
+    });
+    editModal.open();
+  }, [editForm, editModal]);
 
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setEditingUser(null);
-    setEditError('');
-  };
+  const handleOpenDeleteModal = useCallback((usuario) => {
+    setDeletingUser(usuario);
+    deleteModal.open();
+  }, [deleteModal]);
 
-  const handleEditFormChange = (event) => {
-    const { name, value } = event.target;
-    setEditFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // ============================================================================
+  // HANDLERS DE CRUD
+  // ============================================================================
 
-  const handleSaveChanges = async () => {
-    if (!editingUser) return;
-    setEditLoading(true);
-    setEditError('');
+  const handleCreateUser = useCallback(async () => {
+    const erros = validarFormulario(createForm.formData);
+    if (erros.length > 0) {
+      createModal.setError(erros.join(", "));
+      return;
+    }
+
+    createModal.setLoading(true);
+    createModal.setError("");
+
     try {
-      // Validação do formulário
-      if (!editFormData.nome.trim() || !editFormData.email.trim() || !editFormData.role) {
-        throw new Error('Nome, email e papel são obrigatórios.');
-      }
-      if (editFormData.senha && editFormData.senha.length < 6) {
-        throw new Error('A senha deve ter pelo menos 6 caracteres.');
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editFormData.email)) {
-        throw new Error('Email inválido.');
-      }
-
-      // Preparar dados para enviar
       const dataToSend = {
-        nome: editFormData.nome.trim(),
-        email: editFormData.email.trim(),
-        role: editFormData.role,
+        nome: createForm.formData.nome.trim(),
+        email: createForm.formData.email.trim(),
+        senha: createForm.formData.senha,
+        role: createForm.formData.role,
+        telefone: limparTelefone(createForm.formData.telefone),
       };
-      // Incluir senha apenas se preenchida
-      if (editFormData.senha) {
-        dataToSend.senha = editFormData.senha;
+
+      await api.post("/usuarios", dataToSend);
+      createModal.close();
+      createForm.reset();
+      fetchUsuarios();
+    } catch (err) {
+      createModal.setError(err.response?.data?.message || "Falha ao criar usuário.");
+    }
+    createModal.setLoading(false);
+  }, [createForm, createModal, fetchUsuarios]);
+
+  const handleEditUser = useCallback(async () => {
+    if (!editingUser) return;
+
+    const erros = validarFormulario(editForm.formData, true);
+    if (erros.length > 0) {
+      editModal.setError(erros.join(", "));
+      return;
+    }
+
+    editModal.setLoading(true);
+    editModal.setError("");
+
+    try {
+      const dataToSend = {
+        nome: editForm.formData.nome.trim(),
+        email: editForm.formData.email.trim(),
+        telefone: limparTelefone(editForm.formData.telefone),
+        role: editForm.formData.role,
+      };
+
+      if (editForm.formData.senha) {
+        dataToSend.senha = editForm.formData.senha;
       }
 
       await api.put(`/usuarios/${editingUser.id}`, dataToSend);
-      handleCloseEditModal();
+      editModal.close();
+      setEditingUser(null);
       fetchUsuarios();
     } catch (err) {
-      console.error("Erro ao atualizar usuário:", err);
-      setEditError(err.response?.data?.message || err.message || 'Falha ao salvar alterações.');
+      editModal.setError(err.response?.data?.message || "Falha ao salvar alterações.");
     }
-    setEditLoading(false);
-  };
+    editModal.setLoading(false);
+  }, [editingUser, editForm, editModal, fetchUsuarios]);
 
-  // Funções para Exclusão
-  const handleShowDeleteConfirm = (usuario) => {
-    setDeletingUser(usuario);
-    setDeleteError('');
-    setShowDeleteConfirm(true);
-  };
-
-  const handleCloseDeleteConfirm = () => {
-    setShowDeleteConfirm(false);
-    setDeletingUser(null);
-    setDeleteError('');
-  };
-
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = useCallback(async () => {
     if (!deletingUser) return;
-    setDeleteLoading(true);
-    setDeleteError('');
+
+    deleteModal.setLoading(true);
+    deleteModal.setError("");
+
     try {
       await api.delete(`/usuarios/${deletingUser.id}`);
-      handleCloseDeleteConfirm();
+      deleteModal.close();
+      setDeletingUser(null);
       fetchUsuarios();
     } catch (err) {
-      console.error("Erro ao excluir usuário:", err);
-      setDeleteError(err.response?.data?.message || 'Falha ao excluir usuário.');
+      deleteModal.setError(err.response?.data?.message || "Falha ao excluir usuário.");
     }
-    setDeleteLoading(false);
-  };
+    deleteModal.setLoading(false);
+  }, [deletingUser, deleteModal, fetchUsuarios]);
 
-  // Funções para o Modal de Criação
-  const handleShowCreateModal = () => {
-    setCreateFormData({ nome: '', email: '', role: 'cliente', senha: '' });
-    setCreateError('');
-    setShowCreateModal(true);
-  };
+  // ============================================================================
+  // HANDLERS DE FECHAMENTO
+  // ============================================================================
 
-  const handleCloseCreateModal = () => {
-    setShowCreateModal(false);
-    setCreateError('');
-  };
+  const handleCloseEditModal = useCallback(() => {
+    editModal.close();
+    setEditingUser(null);
+  }, [editModal]);
 
-  const handleCreateFormChange = (event) => {
-    const { name, value } = event.target;
-    setCreateFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleCloseDeleteModal = useCallback(() => {
+    deleteModal.close();
+    setDeletingUser(null);
+  }, [deleteModal]);
 
-  const handleCreateUser = async () => {
-    setCreateLoading(true);
-    setCreateError('');
-    try {
-      // Validação do formulário
-      if (!createFormData.nome.trim() || !createFormData.email.trim() || !createFormData.senha || !createFormData.role) {
-        throw new Error('Todos os campos são obrigatórios.');
-      }
-      if (createFormData.senha.length < 6) {
-        throw new Error('A senha deve ter pelo menos 6 caracteres.');
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(createFormData.email)) {
-        throw new Error('Email inválido.');
-      }
+  // ============================================================================
+  // MEMOIZAÇÕES
+  // ============================================================================
 
-      await api.post('/usuarios', createFormData);
-      handleCloseCreateModal();
-      fetchUsuarios();
-    } catch (err) {
-      console.error("Erro ao criar usuário:", err);
-      setCreateError(err.response?.data?.message || err.message || 'Falha ao criar usuário.');
-    }
-    setCreateLoading(false);
-  };
+  const createSubmitText = useMemo(() => ({
+    default: "Criar Usuário",
+    loading: "Criando..."
+  }), []);
 
-  if (loading) return <div className="text-center p-4"><Spinner animation="border" role="status"><span className="visually-hidden">Carregando Usuários...</span></Spinner></div>;
+  const editSubmitText = useMemo(() => ({
+    default: "Salvar Alterações",
+    loading: "Salvando..."
+  }), []);
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
+  if (loading) return <LoadingSpinner message="Carregando Usuários..." />;
   if (error) return <Alert variant="danger">{error}</Alert>;
 
   return (
@@ -179,7 +497,7 @@ const Usuarios = () => {
       <p>Esta área é restrita a administradores.</p>
 
       <div className="mb-3">
-        <Button variant="success" onClick={handleShowCreateModal}>
+        <Button variant="success" onClick={handleOpenCreateModal}>
           <i className="bi bi-plus-circle-fill"></i> Criar Novo Usuário
         </Button>
       </div>
@@ -187,205 +505,52 @@ const Usuarios = () => {
       {usuarios.length === 0 ? (
         <p>Nenhum usuário encontrado.</p>
       ) : (
-        <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Papel</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map(usuario => (
-              <tr key={usuario.id}>
-                <td>{usuario.id}</td>
-                <td>{usuario.nome}</td>
-                <td>{usuario.email}</td>
-                <td>
-                  <Badge bg={usuario.role === 'admin' ? 'danger' : (usuario.role === 'operador' ? 'warning' : 'secondary')}>
-                    {usuario.role}
-                  </Badge>
-                </td>
-                <td>
-                  <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(usuario)}>
-                    <i className="bi bi-pencil-fill"></i> Editar
-                  </Button>
-                  <Button variant="danger" size="sm" onClick={() => handleShowDeleteConfirm(usuario)}>
-                    <i className="bi bi-trash-fill"></i> Excluir
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <UserTable 
+          usuarios={usuarios} 
+          onEdit={handleOpenEditModal} 
+          onDelete={handleOpenDeleteModal} 
+        />
       )}
 
       {/* Modal de Criação */}
-      <Modal show={showCreateModal} onHide={handleCloseCreateModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Criar Novo Usuário</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {createError && <Alert variant="danger">{createError}</Alert>}
-          <Form>
-            <Form.Group className="mb-3" controlId="createFormNome">
-              <Form.Label>Nome</Form.Label>
-              <Form.Control 
-                type="text" 
-                name="nome" 
-                value={createFormData.nome}
-                onChange={handleCreateFormChange}
-                required
-                placeholder="Digite o nome do usuário"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="createFormEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control 
-                type="email" 
-                name="email" 
-                value={createFormData.email}
-                onChange={handleCreateFormChange}
-                required
-                placeholder="exemplo@dominio.com"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="createFormSenha">
-              <Form.Label>Senha</Form.Label>
-              <Form.Control 
-                type="password" 
-                name="senha" 
-                value={createFormData.senha}
-                onChange={handleCreateFormChange}
-                required
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="createFormRole">
-              <Form.Label>Papel</Form.Label>
-              <Form.Select 
-                name="role" 
-                value={createFormData.role}
-                onChange={handleCreateFormChange}
-                aria-label="Selecione o papel"
-              >
-                <option value="cliente">Cliente</option>
-                <option value="operador">Operador</option>
-                <option value="admin">Admin</option>
-              </Form.Select>
-              <Form.Text className="text-muted">
-                Apenas administradores podem definir o papel.
-              </Form.Text>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseCreateModal} disabled={createLoading}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleCreateUser} disabled={createLoading}>
-            {createLoading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Criando...</> : 'Criar Usuário'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <UserModal
+        show={createModal.isOpen}
+        onHide={createModal.close}
+        title="Criar Novo Usuário"
+        formData={createForm.formData}
+        handleChange={createForm.handleChange}
+        onSubmit={handleCreateUser}
+        loading={createModal.loading}
+        error={createModal.error}
+        submitText={createSubmitText}
+      />
 
       {/* Modal de Edição */}
-      <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Editar Usuário (ID: {editingUser?.id})</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {editError && <Alert variant="danger">{editError}</Alert>}
-          <Form>
-            <Form.Group className="mb-3" controlId="editFormNome">
-              <Form.Label>Nome</Form.Label>
-              <Form.Control 
-                type="text" 
-                name="nome" 
-                value={editFormData.nome}
-                onChange={handleEditFormChange}
-                required
-                placeholder="Digite o nome do usuário"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="editFormEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control 
-                type="email" 
-                name="email" 
-                value={editFormData.email}
-                onChange={handleEditFormChange}
-                required
-                placeholder="exemplo@dominio.com"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="editFormSenha">
-              <Form.Label>Nova Senha (opcional)</Form.Label>
-              <Form.Control 
-                type="password" 
-                name="senha" 
-                value={editFormData.senha}
-                onChange={handleEditFormChange}
-                placeholder="Deixe em branco para manter a senha atual"
-                minLength={6}
-              />
-              <Form.Text className="text-muted">
-                A senha deve ter pelo menos 6 caracteres. Deixe em branco para não alterar.
-              </Form.Text>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="editFormRole">
-              <Form.Label>Papel</Form.Label>
-              <Form.Select 
-                name="role" 
-                value={editFormData.role}
-                onChange={handleEditFormChange}
-                aria-label="Selecione o papel"
-                required
-              >
-                <option value="cliente">Cliente</option>
-                <option value="operador">Operador</option>
-                <option value="admin">Admin</option>
-              </Form.Select>
-              <Form.Text className="text-muted">
-                Apenas administradores podem alterar o papel.
-              </Form.Text>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseEditModal} disabled={editLoading}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSaveChanges} disabled={editLoading}>
-            {editLoading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Salvando...</> : 'Salvar Alterações'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <UserModal
+        show={editModal.isOpen}
+        onHide={handleCloseEditModal}
+        title={`Editar Usuário (ID: ${editingUser?.id})`}
+        formData={editForm.formData}
+        handleChange={editForm.handleChange}
+        onSubmit={handleEditUser}
+        loading={editModal.loading}
+        error={editModal.error}
+        submitText={editSubmitText}
+        isEdit={true}
+      />
 
-      {/* Modal de Confirmação de Exclusão */}
-      <Modal show={showDeleteConfirm} onHide={handleCloseDeleteConfirm} centered size="sm">
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar Exclusão</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {deleteError && <Alert variant="danger">{deleteError}</Alert>}
-          Tem certeza que deseja excluir o usuário <strong>{deletingUser?.nome}</strong> (ID: {deletingUser?.id})?
-          Esta ação não pode be desfeita.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDeleteConfirm} disabled={deleteLoading}>
-            Cancelar
-          </Button>
-          <Button variant="danger" onClick={handleDeleteUser} disabled={deleteLoading}>
-            {deleteLoading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Excluindo...</> : 'Excluir'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Modal de Exclusão */}
+      <DeleteConfirmModal
+        show={deleteModal.isOpen}
+        onHide={handleCloseDeleteModal}
+        user={deletingUser}
+        onConfirm={handleDeleteUser}
+        loading={deleteModal.loading}
+        error={deleteModal.error}
+      />
     </div>
   );
 };
 
 export default Usuarios;
+

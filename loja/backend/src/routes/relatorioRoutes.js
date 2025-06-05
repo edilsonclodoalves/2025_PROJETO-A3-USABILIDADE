@@ -17,4 +17,3 @@ router.get("/produtos-mais-vendidos", relatorioController.getProdutosMaisVendido
 // Adicionar outras rotas de relatório aqui, se necessário
 
 module.exports = router;
-

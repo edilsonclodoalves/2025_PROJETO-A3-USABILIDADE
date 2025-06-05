@@ -84,4 +84,3 @@ db.sequelize.sync({ force: false }) // force: false para não recriar tabelas a 
   .catch((err) => {
     console.error("Erro ao sincronizar com o banco de dados:", err);
   });
-

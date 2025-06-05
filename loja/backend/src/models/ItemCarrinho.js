@@ -44,4 +44,3 @@ module.exports = (sequelize) => {
   });
   return ItemCarrinho;
 };
-

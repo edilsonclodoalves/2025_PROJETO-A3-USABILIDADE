@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const db = require("../models");
+const { text } = require("express");
 const Usuario = db.Usuario;
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -14,7 +15,7 @@ const generateToken = (id, role) => {
 
 // Registrar novo usuário
 exports.register = async (req, res) => {
-  const { nome, email, senha, role } = req.body;
+  const { nome, email, telefone, senha, role } = req.body;
 
   try {
     // Verificar se o email já existe
@@ -23,13 +24,16 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Email já cadastrado." });
     }
 
-    // Criar novo usuário (a senha será hasheada pelo hook do model)
-    const newUser = await Usuario.create({ nome, email, senha, role });
+    // Limpar o telefone (remover parênteses, espaços e hífen)
+    const telefoneLimpo = telefone ? telefone.replace(/\D/g, '') : null;
+
+    // Criar novo usuário
+    const newUser = await Usuario.create({ nome, email, telefone: telefoneLimpo, senha, role });
 
     // Gerar token
     const token = generateToken(newUser.id, newUser.role);
 
-    res.status(201).json({ token, user: { id: newUser.id, nome: newUser.nome, email: newUser.email, role: newUser.role } });
+    res.status(201).json({ token, user: { id: newUser.id, nome: newUser.nome, email: newUser.email, telefone: newUser.telefone, role: newUser.role } });
   } catch (error) {
     console.error("Erro no registro:", error);
     res.status(500).json({ message: "Erro interno do servidor ao registrar usuário." });
@@ -56,7 +60,7 @@ exports.login = async (req, res) => {
     // Gerar token
     const token = generateToken(user.id, user.role);
 
-    res.status(200).json({ token, user: { id: user.id, nome: user.nome, email: user.email, role: user.role } });
+    res.status(200).json({ token, user: { id: user.id, nome: user.nome, email: user.email, telefone: user.telefone, role: user.role } });
   } catch (error) {
     console.error("Erro no login:", error);
     res.status(500).json({ message: "Erro interno do servidor ao fazer login." });
@@ -107,11 +111,9 @@ exports.googleLogin = async (req, res) => {
     // Gerar token JWT para o usuário encontrado ou criado
     const token = generateToken(user.id, user.role);
 
-    res.status(200).json({ token, user: { id: user.id, nome: user.nome, email: user.email, role: user.role } });
-
+    res.status(200).json({ token, user: { id: user.id, nome: user.nome, email: user.email, telefone: user.email, role: user.role } });
   } catch (error) {
     console.error("Erro no login com Google:", error);
     res.status(500).json({ message: "Erro ao autenticar com Google." });
   }
 };
-
