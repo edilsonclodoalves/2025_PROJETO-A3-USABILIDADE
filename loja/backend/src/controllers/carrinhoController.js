@@ -84,7 +84,7 @@ exports.addItemCarrinho = async (req, res) => {
         CarrinhoId: carrinho.id,
         ProdutoId: produtoId,
         quantidade: parseInt(quantidade, 10),
-        // precoUnitario: produto.preco // Opcional: armazenar preço no momento da adição
+        precoUnitario: produto.preco // Armazenar preço no momento da adição
       });
     }
 
@@ -186,4 +186,3 @@ exports.clearCarrinho = async (req, res) => {
         res.status(500).json({ message: "Erro interno do servidor." });
     }
 };
-

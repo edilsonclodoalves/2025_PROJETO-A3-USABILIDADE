@@ -153,7 +153,7 @@ const AdminProdutos = () => {
                 </td>
                 <td>{produto.nome}</td>
                 <td>{produto.descricao}</td>
-                <td>R$ {produto.preco?.toFixed(2)}</td>
+                <td>R$ {isNaN(Number(produto.preco)) ? '0.00' : Number(produto.preco).toFixed(2)}</td>
                 <td>
                   <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(produto)}>
                     <i className="bi bi-pencil-fill"></i> Editar
@@ -253,4 +253,3 @@ const AdminProdutos = () => {
 };
 
 export default AdminProdutos;
-

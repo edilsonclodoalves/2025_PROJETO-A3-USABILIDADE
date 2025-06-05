@@ -22,4 +22,3 @@ router.delete("/items/:itemId", carrinhoController.removeItemCarrinho);
 router.delete("/", carrinhoController.clearCarrinho);
 
 module.exports = router;
-

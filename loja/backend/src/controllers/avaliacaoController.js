@@ -157,6 +157,7 @@ exports.deleteAvaliacao = async (req, res) => {
     console.error("Erro ao deletar avaliação:", error);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
+<<<<<<< HEAD
 };
 
 // ✅ Obter todas as avaliações
@@ -195,3 +196,6 @@ exports.getDistribuicaoNotas = async (req, res) => {
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
+=======
+};
+>>>>>>> 82fd50fef8870610f5f94e030c8bb03477e79246

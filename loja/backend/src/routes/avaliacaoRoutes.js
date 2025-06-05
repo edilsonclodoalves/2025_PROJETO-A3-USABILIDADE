@@ -25,4 +25,8 @@ router.put("/:id", avaliacaoController.updateAvaliacao);
 // Deletar uma avaliação (próprio usuário ou admin)
 router.delete("/:id", avaliacaoController.deleteAvaliacao);
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> 82fd50fef8870610f5f94e030c8bb03477e79246

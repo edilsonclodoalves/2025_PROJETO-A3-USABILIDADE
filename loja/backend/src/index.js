@@ -61,10 +61,10 @@ io.on("connection", (socket) => {
   console.log(`Usuário conectado com socket ID: ${socket.id}`);
 
   // Exemplo: Entrar em uma sala específica para o usuário (após autenticação)
-  // socket.on("join_user_room", (userId) => {
-  //   socket.join(`user_${userId}`);
-  //   console.log(`Socket ${socket.id} entrou na sala user_${userId}`);
-  // });
+   socket.on("join_user_room", (userId) => {
+     socket.join(`user_${userId}`);
+     console.log(`Socket ${socket.id} entrou na sala user_${userId}`);
+   });
 
   // Exemplo: Ouvir evento para atualizar status do pedido (emitido pelo controller)
   // (A emissão real está comentada no pedidoController por enquanto)
@@ -89,4 +89,3 @@ db.sequelize.sync({ force: false }) // force: false para não recriar tabelas a 
   .catch((err) => {
     console.error("Erro ao sincronizar com o banco de dados:", err);
   });
-
