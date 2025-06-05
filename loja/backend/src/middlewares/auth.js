@@ -47,4 +47,3 @@ exports.authenticate = async (req, res, next) => {
     res.status(401).json({ message: "Não autorizado, falha na verificação do token." });
   }
 };
-

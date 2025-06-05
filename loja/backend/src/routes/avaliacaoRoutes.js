@@ -23,4 +23,3 @@ router.put("/:id", avaliacaoController.updateAvaliacao);
 router.delete("/:id", avaliacaoController.deleteAvaliacao);
 
 module.exports = router;
-

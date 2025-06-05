@@ -2,12 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext'; // Importar SocketProvider
+import { SocketProvider } from './context/SocketContext';
 
 // Importar Páginas
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register'; // Importar a página de Registro
+import Register from './pages/Register';
 import Produtos from './pages/Produtos';
 import Carrinho from './pages/Carrinho';
 import Pedidos from './pages/Pedidos';
@@ -22,20 +22,20 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || ""; // Pegar do .env
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <AuthProvider>
-        <SocketProvider> {/* Envolver com SocketProvider */}
+        <SocketProvider>
           <Router>
             <Navbar />
-            <div className="container mt-4"> {/* Adiciona um container para espaçamento */}
+            <div className="container mt-4">
               <Routes>
                 {/* Rotas Públicas */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} /> {/* Adicionar rota de Registro */}
+                <Route path="/register" element={<Register />} />
                 <Route path="/produtos" element={<Produtos />} />
 
                 {/* Rotas Protegidas (Usuário Logado) */}
@@ -43,11 +43,28 @@ function App() {
                 <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
                 <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
 
-                {/* Rotas Protegidas (Admin) */}
-                <Route path="/dashboard" element={<ProtectedRoute roles={['admin']}><Dashboard /></ProtectedRoute>} />
-                <Route path="/relatorios" element={<ProtectedRoute roles={['admin', 'operador']}><Relatorios /></ProtectedRoute>} /> {/* Permitir operador também? */}
-                <Route path="/usuarios" element={<ProtectedRoute roles={['admin']}><Usuarios /></ProtectedRoute>} />
-                <Route path="/admin/produtos" element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} />
+                {/* Rotas Protegidas (Admin/Operador) */}
+                <Route 
+                  path="/admin/pedidos" 
+                  element={<ProtectedRoute roles={['admin', 'operador']}><Pedidos /></ProtectedRoute>} 
+                />
+                <Route 
+                  path="/dashboard" 
+                  element={<ProtectedRoute roles={['admin']}><Dashboard /></ProtectedRoute>} 
+                />
+                <Route 
+                  path="/relatorios" 
+                  element={<ProtectedRoute roles={['admin', 'operador']}><Relatorios /></ProtectedRoute>} 
+                />
+                <Route 
+                  path="/usuarios" 
+                  element={<ProtectedRoute roles={['admin']}><Usuarios /></ProtectedRoute>} 
+                />
+                <Route 
+                  path="/admin/produtos" 
+                  element={<ProtectedRoute roles={['admin', 'operador']}><AdminProdutos /></ProtectedRoute>} 
+                />
+                {/* Rota de Fallback para Páginas Não Encontradas */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
             </div>

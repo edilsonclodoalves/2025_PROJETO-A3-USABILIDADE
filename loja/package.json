@@ -5,5 +5,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.0.0"
+  },
+  "dependencies": {
+    "react-input-mask": "^2.0.4"
   }
 }

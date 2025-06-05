@@ -14,4 +14,3 @@ router.put("/:id", authenticate, authorize(["admin", "operador"]), produtoContro
 delete router.delete("/:id", authenticate, authorize(["admin", "operador"]), produtoController.deleteProduto);
 
 module.exports = router;
-

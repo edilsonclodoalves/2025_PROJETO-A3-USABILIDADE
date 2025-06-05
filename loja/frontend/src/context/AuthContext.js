@@ -59,10 +59,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Função de Registro
-  const register = async (nome, email, senha) => {
+  const register = async (nome, email, telefone, senha) => {
     setLoading(true);
     try {
-      const response = await api.post('/usuarios/register', { nome, email, senha });
+      const response = await api.post('/usuarios/register', { nome, email,telefone, senha });
       setAuthData(response.data.token, response.data.user);
       return response.data; // Retorna sucesso
     } catch (error) {
