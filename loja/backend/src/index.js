@@ -12,6 +12,9 @@ const carrinhoRoutes = require("./routes/carrinhoRoutes");
 const pedidoRoutes = require("./routes/pedidoRoutes");
 const avaliacaoRoutes = require("./routes/avaliacaoRoutes");
 const relatorioRoutes = require("./routes/relatorioRoutes");
+const produtoVendidoRoutes = require("./routes/produtoVendido.routes");
+const produtoEmEstoqueRoutes = require("./routes/produtoEmEstoque.routes");
+
 
 const app = express();
 const server = http.createServer(app); // Criar servidor HTTP para o Socket.IO
@@ -45,6 +48,8 @@ app.use("/api/carrinho", carrinhoRoutes);
 app.use("/api/pedidos", pedidoRoutes);
 app.use("/api/avaliacoes", avaliacaoRoutes);
 app.use("/api/relatorios", relatorioRoutes);
+app.use("/api/vendas", produtoVendidoRoutes);
+app.use("/api/estoque", produtoEmEstoqueRoutes);
 
 // Rota de Teste
 app.get("/", (req, res) => {
