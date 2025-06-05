@@ -155,10 +155,10 @@ const Pedidos = () => {
     }
   }, 500);
 
-  useEffect(() => {
-    buscarUsuarios(buscaUsuarioTermo);
-    return () => buscarUsuarios.cancel();
-  }, [buscaUsuarioTermo]);
+ useEffect(() => {
+  buscarUsuarios();
+}, [buscarUsuarios]);
+
 
   // Buscar produtos com debounce
   const buscarProdutos = debounce(async (termo) => {
