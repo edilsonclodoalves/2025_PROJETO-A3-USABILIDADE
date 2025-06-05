@@ -10,9 +10,16 @@ const Usuarios = () => {
   // Estados para o Modal de Edição
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [editFormData, setEditFormData] = useState({ nome: '', email: '', role: '', senha: '' });
+  const [editFormData, setEditFormData] = useState({ nome: '', email: '', role: '' }); // Removido senha
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
+
+  // Estados para o Modal de Reset de Senha
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState(null);
+  const [resetPasswordData, setResetPasswordData] = useState({ novaSenha: '', confirmarSenha: '' });
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState('');
 
   // Estado para confirmação de exclusão
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -47,7 +54,7 @@ const Usuarios = () => {
   // Funções para o Modal de Edição
   const handleShowEditModal = (usuario) => {
     setEditingUser(usuario);
-    setEditFormData({ nome: usuario.nome, email: usuario.email, role: usuario.role, senha: '' });
+    setEditFormData({ nome: usuario.nome, email: usuario.email, role: usuario.role }); // Removido senha
     setEditError('');
     setShowEditModal(true);
   };
@@ -72,23 +79,16 @@ const Usuarios = () => {
       if (!editFormData.nome.trim() || !editFormData.email.trim() || !editFormData.role) {
         throw new Error('Nome, email e papel são obrigatórios.');
       }
-      if (editFormData.senha && editFormData.senha.length < 6) {
-        throw new Error('A senha deve ter pelo menos 6 caracteres.');
-      }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editFormData.email)) {
         throw new Error('Email inválido.');
       }
 
-      // Preparar dados para enviar
+      // Preparar dados para enviar (sem senha)
       const dataToSend = {
         nome: editFormData.nome.trim(),
         email: editFormData.email.trim(),
         role: editFormData.role,
       };
-      // Incluir senha apenas se preenchida
-      if (editFormData.senha) {
-        dataToSend.senha = editFormData.senha;
-      }
 
       await api.put(`/usuarios/${editingUser.id}`, dataToSend);
       handleCloseEditModal();
@@ -98,6 +98,53 @@ const Usuarios = () => {
       setEditError(err.response?.data?.message || err.message || 'Falha ao salvar alterações.');
     }
     setEditLoading(false);
+  };
+
+  // Funções para o Modal de Reset de Senha
+  const handleShowResetPasswordModal = (usuario) => {
+    setResetPasswordUser(usuario);
+    setResetPasswordData({ novaSenha: '', confirmarSenha: '' });
+    setResetPasswordError('');
+    setShowResetPasswordModal(true);
+  };
+
+  const handleCloseResetPasswordModal = () => {
+    setShowResetPasswordModal(false);
+    setResetPasswordUser(null);
+    setResetPasswordError('');
+  };
+
+  const handleResetPasswordFormChange = (event) => {
+    const { name, value } = event.target;
+    setResetPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return;
+    setResetPasswordLoading(true);
+    setResetPasswordError('');
+    try {
+      // Validação do formulário
+      if (!resetPasswordData.novaSenha || !resetPasswordData.confirmarSenha) {
+        throw new Error('Todos os campos são obrigatórios.');
+      }
+      if (resetPasswordData.novaSenha.length < 6) {
+        throw new Error('A senha deve ter pelo menos 6 caracteres.');
+      }
+      if (resetPasswordData.novaSenha !== resetPasswordData.confirmarSenha) {
+        throw new Error('As senhas não coincidem.');
+      }
+
+      await api.put(`/usuarios/${resetPasswordUser.id}/reset-password`, {
+        novaSenha: resetPasswordData.novaSenha
+      });
+      handleCloseResetPasswordModal();
+      // Não precisa recarregar a lista de usuários para reset de senha
+    } catch (err) {
+      console.error("Erro ao resetar senha:", err);
+      setResetPasswordError(err.response?.data?.message || err.message || 'Falha ao resetar senha.');
+    }
+    setResetPasswordLoading(false);
   };
 
   // Funções para Exclusão
@@ -212,6 +259,9 @@ const Usuarios = () => {
                   <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(usuario)}>
                     <i className="bi bi-pencil-fill"></i> Editar
                   </Button>
+                  <Button variant="info" size="sm" className="me-2" onClick={() => handleShowResetPasswordModal(usuario)}>
+                    <i className="bi bi-key-fill"></i> Reset Senha
+                  </Button>
                   <Button variant="danger" size="sm" onClick={() => handleShowDeleteConfirm(usuario)}>
                     <i className="bi bi-trash-fill"></i> Excluir
                   </Button>
@@ -322,20 +372,6 @@ const Usuarios = () => {
                 placeholder="exemplo@dominio.com"
               />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="editFormSenha">
-              <Form.Label>Nova Senha (opcional)</Form.Label>
-              <Form.Control 
-                type="password" 
-                name="senha" 
-                value={editFormData.senha}
-                onChange={handleEditFormChange}
-                placeholder="Deixe em branco para manter a senha atual"
-                minLength={6}
-              />
-              <Form.Text className="text-muted">
-                A senha deve ter pelo menos 6 caracteres. Deixe em branco para não alterar.
-              </Form.Text>
-            </Form.Group>
             <Form.Group className="mb-3" controlId="editFormRole">
               <Form.Label>Papel</Form.Label>
               <Form.Select 
@@ -350,7 +386,7 @@ const Usuarios = () => {
                 <option value="admin">Admin</option>
               </Form.Select>
               <Form.Text className="text-muted">
-                Apenas administradores podem alterar o papel.
+                Apenas administradores podem alterar o papel. Para alterar a senha, use o botão "Reset Senha".
               </Form.Text>
             </Form.Group>
           </Form>
@@ -361,6 +397,53 @@ const Usuarios = () => {
           </Button>
           <Button variant="primary" onClick={handleSaveChanges} disabled={editLoading}>
             {editLoading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Salvando...</> : 'Salvar Alterações'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de Reset de Senha */}
+      <Modal show={showResetPasswordModal} onHide={handleCloseResetPasswordModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Reset de Senha - {resetPasswordUser?.nome}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {resetPasswordError && <Alert variant="danger">{resetPasswordError}</Alert>}
+          <Form>
+            <Form.Group className="mb-3" controlId="resetPasswordFormNovaSenha">
+              <Form.Label>Nova Senha</Form.Label>
+              <Form.Control 
+                type="password" 
+                name="novaSenha" 
+                value={resetPasswordData.novaSenha}
+                onChange={handleResetPasswordFormChange}
+                required
+                placeholder="Digite a nova senha"
+                minLength={6}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="resetPasswordFormConfirmarSenha">
+              <Form.Label>Confirmar Nova Senha</Form.Label>
+              <Form.Control 
+                type="password" 
+                name="confirmarSenha" 
+                value={resetPasswordData.confirmarSenha}
+                onChange={handleResetPasswordFormChange}
+                required
+                placeholder="Confirme a nova senha"
+                minLength={6}
+              />
+              <Form.Text className="text-muted">
+                A senha deve ter pelo menos 6 caracteres.
+              </Form.Text>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseResetPasswordModal} disabled={resetPasswordLoading}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleResetPassword} disabled={resetPasswordLoading}>
+            {resetPasswordLoading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Resetando...</> : 'Reset Senha'}
           </Button>
         </Modal.Footer>
       </Modal>
