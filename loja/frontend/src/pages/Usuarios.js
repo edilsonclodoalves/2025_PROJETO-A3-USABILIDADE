@@ -599,7 +599,7 @@ const Usuarios = () => {
         telefone: limparTelefone(createForm.formData.telefone),
       };
 
-      await api.post("/usuarios", dataToSend);
+      await api.post("/usuarios/admin/create", dataToSend);
       createModal.close();
       createForm.reset();
       fetchUsuarios();

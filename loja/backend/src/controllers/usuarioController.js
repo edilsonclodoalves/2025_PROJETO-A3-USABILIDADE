@@ -1,6 +1,5 @@
 const db = require("../models");
 const Usuario = db.Usuario;
-const bcrypt = require("bcryptjs");
 
 // Obter todos os usuários (Admin)
 exports.getAllUsers = async (req, res) => {
@@ -77,8 +76,8 @@ exports.updateUser = async (req, res) => {
       if (senha.length < 6) {
         return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
       }
-      const salt = await bcrypt.genSalt(10);
-      user.senha = await bcrypt.hash(senha, salt);
+      // Deixar o hook beforeUpdate fazer o hash automaticamente
+      user.senha = senha;
     }
 
     await user.save();
@@ -158,8 +157,8 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).json({ message: "Usuário não encontrado." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.senha = await bcrypt.hash(novaSenha, salt);
+    // Atualizar a senha (o hook beforeUpdate irá fazer o hash automaticamente)
+    user.senha = novaSenha;
     await user.save();
 
     res.status(200).json({
