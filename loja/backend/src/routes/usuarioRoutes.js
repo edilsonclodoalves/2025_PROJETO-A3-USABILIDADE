@@ -17,9 +17,12 @@ router.post("/admin/create", authenticate, authorize(["admin"]), authController.
 router.get("/me", authenticate, usuarioController.getMe);
 
 // Rotas de Gerenciamento de Usuários
-router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers); // Listar todos os usuários (admin)
-router.get("/:id", authenticate, usuarioController.getUserById); // Obter usuário por ID (admin ou próprio usuário)
-router.put("/:id", authenticate, usuarioController.updateUser); // Atualizar usuário (admin ou próprio usuário)
-router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser); // Deletar usuário (admin)
+router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers); // Listar todos os usuários
+router.get("/:id", authenticate, usuarioController.getUserById); // Obter usuário por ID
+router.put("/:id", authenticate, usuarioController.updateUser); // Atualizar usuário
+router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser); // Deletar usuário
+
+// Reset de senha (protegido, admin ou próprio usuário)
+router.put("/:id/reset-password", authenticate, usuarioController.resetPassword);
 
 module.exports = router;

@@ -22,7 +22,6 @@ exports.getUserById = async (req, res) => {
   const loggedInUserRole = req.user.role;
 
   try {
-    // Verificar se o usuário logado é admin ou está tentando acessar seu próprio perfil
     if (loggedInUserRole !== "admin" && loggedInUserId !== userId) {
       return res.status(403).json({ message: "Acesso negado." });
     }
@@ -50,12 +49,10 @@ exports.updateUser = async (req, res) => {
   const { nome, email, telefone, senha, role } = req.body;
 
   try {
-    // Verificar permissão
     if (loggedInUserRole !== "admin" && loggedInUserId !== userId) {
       return res.status(403).json({ message: "Acesso negado." });
     }
 
-    // Apenas admin pode mudar o 'role'
     if (loggedInUserRole !== "admin" && role && role !== req.user.role) {
       return res.status(403).json({ message: "Você não tem permissão para alterar o papel do usuário." });
     }
@@ -65,20 +62,17 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ message: "Usuário não encontrado." });
     }
 
-    // Validar telefone, se fornecido
     if (telefone && !/^\d{11}$/.test(telefone)) {
       return res.status(400).json({ message: "Telefone deve conter exatamente 11 dígitos." });
     }
 
-    // Atualizar campos permitidos
     user.nome = nome || user.nome;
     user.email = email || user.email;
-    user.telefone = telefone !== undefined ? telefone : user.telefone; // Atualizar telefone
+    user.telefone = telefone !== undefined ? telefone : user.telefone;
     if (loggedInUserRole === "admin") {
       user.role = role || user.role;
     }
 
-    // Atualizar senha se fornecida
     if (senha) {
       if (senha.length < 6) {
         return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
@@ -89,7 +83,6 @@ exports.updateUser = async (req, res) => {
 
     await user.save();
 
-    // Retornar usuário atualizado sem a senha
     const { senha: _, ...userWithoutPassword } = user.get({ plain: true });
     res.status(200).json(userWithoutPassword);
   } catch (error) {
@@ -115,7 +108,7 @@ exports.deleteUser = async (req, res) => {
     }
 
     await user.destroy();
-    res.status(204).send(); // Sem conteúdo
+    res.status(204).send();
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -136,6 +129,45 @@ exports.getMe = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.error("Erro ao buscar informações do usuário logado:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+
+// Reset de senha (Admin ou próprio usuário)
+exports.resetPassword = async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const loggedInUserId = req.user.id;
+  const loggedInUserRole = req.user.role;
+  const { novaSenha } = req.body;
+
+  try {
+    if (!novaSenha || novaSenha.trim() === "") {
+      return res.status(400).json({ message: "Nova senha é obrigatória." });
+    }
+
+    if (novaSenha.length < 6) {
+      return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
+    }
+
+    if (loggedInUserRole !== "admin" && loggedInUserId !== userId) {
+      return res.status(403).json({ message: "Acesso negado. Você só pode alterar sua própria senha." });
+    }
+
+    const user = await Usuario.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.senha = await bcrypt.hash(novaSenha, salt);
+    await user.save();
+
+    res.status(200).json({
+      message: "Senha alterada com sucesso.",
+      userId: user.id
+    });
+  } catch (error) {
+    console.error("Erro ao resetar senha:", error);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
