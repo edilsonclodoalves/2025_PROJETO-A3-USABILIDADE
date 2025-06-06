@@ -11,6 +11,7 @@ router.get("/:id", produtoController.getProdutoById); // Obter detalhes de um pr
 
 // Rotas Protegidas (Admin/Operador)
 router.post("/", authenticate, authorize(["admin", "operador"]), produtoController.createProduto);
+router.post("/bulk", authenticate, authorize(["admin", "operador"]), produtoController.createProdutosBulk);
 router.put("/:id", authenticate, authorize(["admin", "operador"]), produtoController.updateProduto);
 router.delete("/:id", authenticate, authorize(["admin", "operador"]), produtoController.deleteProduto);
 

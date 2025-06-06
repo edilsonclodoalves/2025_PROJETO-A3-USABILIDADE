@@ -150,3 +150,80 @@ exports.searchProdutos = async (req, res) => {
   }
 };
 
+
+// Cadastrar produtos em massa via CSV (Admin/Operador)
+exports.createProdutosBulk = async (req, res) => {
+  try {
+    const { produtos } = req.body;
+
+    if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+      return res.status(400).json({ 
+        message: "Lista de produtos é obrigatória e deve conter pelo menos um produto." 
+      });
+    }
+
+    const resultados = {
+      sucessos: [],
+      erros: [],
+      total: produtos.length
+    };
+
+    // Processar cada produto individualmente
+    for (let i = 0; i < produtos.length; i++) {
+      const produto = produtos[i];
+      const linha = i + 2; // +2 porque linha 1 é cabeçalho e array começa em 0
+
+      try {
+        // Validar campos obrigatórios
+        if (!produto.nome || produto.nome.trim() === '') {
+          throw new Error('Nome é obrigatório');
+        }
+        if (!produto.preco || isNaN(parseFloat(produto.preco))) {
+          throw new Error('Preço deve ser um número válido');
+        }
+
+        // Criar produto
+        const novoProduto = await Produto.create({
+          nome: produto.nome.trim(),
+          descricao: produto.descricao ? produto.descricao.trim() : '',
+          preco: parseFloat(produto.preco),
+          imagemUrl: produto.imagemUrl ? produto.imagemUrl.trim() : ''
+        });
+
+        resultados.sucessos.push({
+          linha: linha,
+          produto: novoProduto,
+          nome: produto.nome
+        });
+
+      } catch (error) {
+        console.error(`Erro ao criar produto linha ${linha}:`, error);
+        
+        let mensagemErro = error.message;
+        if (error.name === 'SequelizeValidationError') {
+          mensagemErro = error.errors.map(e => e.message).join(', ');
+        } else if (error.name === 'SequelizeUniqueConstraintError') {
+          mensagemErro = 'Produto com este nome já existe';
+        }
+
+        resultados.erros.push({
+          linha: linha,
+          nome: produto.nome || 'Nome não informado',
+          erro: mensagemErro
+        });
+      }
+    }
+
+    // Retornar resultado do processamento
+    const status = resultados.erros.length === 0 ? 201 : 207; // 207 = Multi-Status
+    res.status(status).json({
+      message: `Processamento concluído: ${resultados.sucessos.length} sucessos, ${resultados.erros.length} erros`,
+      resultados: resultados
+    });
+
+  } catch (error) {
+    console.error("Erro no processamento em massa:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+
