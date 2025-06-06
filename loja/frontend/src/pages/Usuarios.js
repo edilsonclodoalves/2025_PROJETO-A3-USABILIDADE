@@ -29,7 +29,8 @@ const validarFormulario = (dados, isEdit = false) => {
   
   if (dados.email && !validarEmail(dados.email)) erros.push("Email inválido");
   if (dados.senha && !validarSenha(dados.senha)) erros.push("Senha deve ter pelo menos 6 caracteres");
-  if (dados.telefone && !validarTelefone(dados.telefone)) erros.push("Telefone deve estar no formato (XX) XXXXX-XXXX");
+  // if (dados.telefone && !validarTelefone(dados.telefone)) erros.push("Telefone deve estar no formato (XX) XXXXX-XXXX");
+  //valida o telefone apenas se for
   
   return erros;
 };
@@ -173,30 +174,7 @@ const UserFormFields = ({ formData, handleChange, isEdit = false }) => (
       <Form.Text id="telefone-help" className="text-muted">
         Use o formato (XX) XXXXX-XXXX{isEdit ? ". Deixe em branco para remover." : ". Campo opcional."}
       </Form.Text>
-    </Form.Group>
-    
-    <Form.Group className="mb-3">
-      <Form.Label>
-        {isEdit ? "Nova Senha" : "Senha"} {!isEdit && <span className="text-danger">*</span>}
-      </Form.Label>
-      <Form.Control
-        type="password"
-        name="senha"
-        value={formData.senha}
-        onChange={handleChange}
-        required={!isEdit}
-        placeholder={isEdit ? "Deixe em branco para manter a senha atual" : "Mínimo 6 caracteres"}
-        minLength={6}
-        aria-describedby="senha-help"
-      />
-      <Form.Text id="senha-help" className="text-muted">
-        {isEdit 
-          ? "A senha deve ter pelo menos 6 caracteres. Deixe em branco para não alterar."
-          : "A senha deve ter pelo menos 6 caracteres."
-        }
-      </Form.Text>
-    </Form.Group>
-    
+    </Form.Group>  
     <Form.Group className="mb-3">
       <Form.Label>
         Papel <span className="text-danger">*</span>
@@ -516,7 +494,6 @@ const Usuarios = () => {
     email: "",
     telefone: "",
     role: "",
-    senha: "",
   });
 
   const resetPasswordForm = useForm({

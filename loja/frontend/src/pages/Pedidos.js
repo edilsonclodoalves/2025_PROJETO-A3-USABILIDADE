@@ -24,7 +24,7 @@ const Pedidos = () => {
     usuarioId: '',
     nome: '',
     telefone: '',
-    enderecoEntrega: { logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
+    enderecoEntrega: { cep: '', logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
     itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
   });
   const [filterStatus, setFilterStatus] = useState('');
@@ -141,7 +141,7 @@ const Pedidos = () => {
   }, [fetchPedidos]);
 
   // Buscar usuários com debounce
-  const buscarUsuarios = debounce(async (termo) => {
+  const buscarUsuarios = useCallback(debounce(async (termo) => {
     if (termo.length < 3) {
       setUsuariosBusca([]);
       return;
@@ -153,16 +153,16 @@ const Pedidos = () => {
       console.error('Erro ao buscar usuários:', err);
       toast.error('Falha ao buscar usuários.');
     }
-  }, 500);
+  }, 500), []);
 
   useEffect(() => {
     buscarUsuarios(buscaUsuarioTermo);
     return () => buscarUsuarios.cancel();
-  }, [buscaUsuarioTermo]);
+  }, [buscaUsuarioTermo, buscarUsuarios]);
 
 
   // Buscar produtos com debounce
-  const buscarProdutos = debounce(async (termo) => {
+  const buscarProdutos = useCallback(debounce(async (termo) => {
     if (termo.length < 3) {
       setProdutosBusca([]);
       return;
@@ -174,12 +174,42 @@ const Pedidos = () => {
       console.error('Erro ao buscar produtos:', err);
       toast.error('Falha ao buscar produtos.');
     }
-  }, 500);
+  }, 500), []);
 
   useEffect(() => {
     buscarProdutos(buscaProdutoTermo);
     return () => buscarProdutos.cancel();
-  }, [buscaProdutoTermo]);
+  }, [buscaProdutoTermo, buscarProdutos]);
+
+  // Função para buscar CEP
+  const buscarCEP = async (cep) => {
+    if (!cep || cep.length !== 8) return;
+    
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        setCreateForm(prev => ({
+          ...prev,
+          enderecoEntrega: {
+            ...prev.enderecoEntrega,
+            cep: cep,
+            logradouro: data.logradouro || '',
+            bairro: data.bairro || '',
+            localidade: data.localidade || '',
+            uf: data.uf || ''
+          }
+        }));
+        toast.success('CEP encontrado!');
+      } else {
+        toast.error('CEP não encontrado.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      toast.error('Erro ao buscar CEP.');
+    }
+  };
 
   const formatarData = (dataISO) => {
     if (!dataISO) return '-';
@@ -373,6 +403,7 @@ const Pedidos = () => {
       telefone: usuario.telefone || '',
       enderecoEntrega: usuario.endereco
         ? {
+            cep: usuario.endereco.cep || '',
             logradouro: usuario.endereco.logradouro || '',
             numero: usuario.endereco.numero || '',
             bairro: usuario.endereco.bairro || '',
@@ -421,7 +452,7 @@ const Pedidos = () => {
         usuarioId: '',
         nome: '',
         telefone: '',
-        enderecoEntrega: { logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
+        enderecoEntrega: { cep: '', logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
         itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
       });
       toast.success('Pedido criado com sucesso!');
@@ -529,7 +560,7 @@ const Pedidos = () => {
                 placeholder="Digite ID ou e-mail"
               />
             </div>
-            {user.role === 'operador' && (
+            {user.role === 'admin' && (
               <div className="col-md-4 d-flex align-items-end">
                 <button
                   className="btn btn-primary"
@@ -632,6 +663,27 @@ const Pedidos = () => {
                     </div>
 
                     <h6>Endereço de Entrega</h6>
+                    <div className="mb-3">
+                      <label className="form-label">CEP</label>
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="enderecoEntrega.cep"
+                          value={createForm.enderecoEntrega.cep}
+                          onChange={(e) => handleCreateChange(e)}
+                          placeholder="Somente números"
+                          maxLength="8"
+                        />
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary"
+                          onClick={() => buscarCEP(createForm.enderecoEntrega.cep)}
+                        >
+                          Buscar
+                        </button>
+                      </div>
+                    </div>
                     <div className="mb-3">
                       <label className="form-label">Logradouro</label>
                       <input
@@ -887,14 +939,19 @@ const Pedidos = () => {
                         <div className="p-3 bg-light">
                           <h6>Itens do Pedido</h6>
                           {pedido.ItemPedidos && pedido.ItemPedidos.length > 0 ? (
-                            <ul className="list-unstyled mb-0">
-                              {pedido.ItemPedidos.map((item) => (
-                                <li key={item.id}>
-                                  {item.Produto?.nome || 'Produto não encontrado'} - Quantidade:{' '}
-                                  {item.quantidade} - R$ {parseFloat(item.precoUnitario).toFixed(2)}
-                                </li>
-                              ))}
-                            </ul>
+                            <>
+                              <ul className="list-unstyled mb-2">
+                                {pedido.ItemPedidos.map((item) => (
+                                  <li key={item.id}>
+                                    {item.Produto?.nome || 'Produto não encontrado'} - Quantidade:{' '}
+                                    {item.quantidade} - R$ {parseFloat(item.precoUnitario).toFixed(2)}
+                                  </li>
+                                ))}
+                              </ul>
+                              <div className="mt-2 pt-2 border-top">
+                                <strong>Valor Total: R$ {parseFloat(pedido.valorTotal).toFixed(2)}</strong>
+                              </div>
+                            </>
                           ) : (
                             'Nenhum item'
                           )}

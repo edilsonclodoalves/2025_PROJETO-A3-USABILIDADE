@@ -13,7 +13,7 @@ import Carrinho from './pages/Carrinho';
 import Pedidos from './pages/Pedidos';
 import Perfil from './pages/Perfil';
 import Dashboard from './pages/Dashboard';
-import Relatorios from './pages/Relatorios';
+// import Relatorios from './pages/Relatorios';
 import Usuarios from './pages/Usuarios';
 import AdminProdutos from './pages/AdminProdutos';
 
@@ -52,10 +52,10 @@ function App() {
                   path="/dashboard" 
                   element={<ProtectedRoute roles={['admin']}><Dashboard /></ProtectedRoute>} 
                 />
-                <Route 
+                {/* <Route 
                   path="/relatorios" 
                   element={<ProtectedRoute roles={['admin', 'operador']}><Relatorios /></ProtectedRoute>} 
-                />
+                /> */}
                 <Route 
                   path="/usuarios" 
                   element={<ProtectedRoute roles={['admin']}><Usuarios /></ProtectedRoute>} 

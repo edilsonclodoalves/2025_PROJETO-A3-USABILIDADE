@@ -170,3 +170,31 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
+
+// Buscar usuários por termo (para autocomplete)
+exports.searchUsers = async (req, res) => {
+  const { termo } = req.query;
+
+  try {
+    if (!termo || termo.trim().length < 3) {
+      return res.status(400).json({ message: "Termo de busca deve ter pelo menos 3 caracteres." });
+    }
+
+    const users = await Usuario.findAll({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { nome: { [db.Sequelize.Op.like]: `%${termo}%` } },
+          { email: { [db.Sequelize.Op.like]: `%${termo}%` } }
+        ]
+      },
+      attributes: ['id', 'nome', 'email', 'telefone'],
+      limit: 10
+    });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+

@@ -11,7 +11,7 @@ const produtoRoutes = require("./routes/produtoRoutes");
 const carrinhoRoutes = require("./routes/carrinhoRoutes");
 const pedidoRoutes = require("./routes/pedidoRoutes");
 const avaliacaoRoutes = require("./routes/avaliacaoRoutes");
-const relatorioRoutes = require("./routes/relatorioRoutes");
+//const relatorioRoutes = require("./routes/relatorioRoutes");
 const produtoVendidoRoutes = require("./routes/produtoVendido.routes");
 const produtoEmEstoqueRoutes = require("./routes/produtoEmEstoque.routes");
 
@@ -47,7 +47,7 @@ app.use("/api/produtos", produtoRoutes);
 app.use("/api/carrinho", carrinhoRoutes);
 app.use("/api/pedidos", pedidoRoutes);
 app.use("/api/avaliacoes", avaliacaoRoutes);
-app.use("/api/relatorios", relatorioRoutes);
+//app.use("/api/relatorios", relatorioRoutes);
 app.use("/api/vendas", produtoVendidoRoutes);
 app.use("/api/estoque", produtoEmEstoqueRoutes);
 

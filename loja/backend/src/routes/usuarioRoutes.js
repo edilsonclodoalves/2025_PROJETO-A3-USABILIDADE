@@ -18,6 +18,7 @@ router.get("/me", authenticate, usuarioController.getMe);
 
 // Rotas de Gerenciamento de Usuários
 router.get("/", authenticate, authorize(["admin"]), usuarioController.getAllUsers); // Listar todos os usuários
+router.get("/busca", authenticate, authorize(["admin", "operador"]), usuarioController.searchUsers); // Buscar usuários
 router.get("/:id", authenticate, usuarioController.getUserById); // Obter usuário por ID
 router.put("/:id", authenticate, usuarioController.updateUser); // Atualizar usuário
 router.delete("/:id", authenticate, authorize(["admin"]), usuarioController.deleteUser); // Deletar usuário

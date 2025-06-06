@@ -57,9 +57,9 @@ const CustomNavbar = () => {
                 <NavDropdown.Item as={Link} to="/dashboard" className={isActive('/dashboard')}>
                   <i className="bi bi-speedometer2 me-2"></i>Dashboard
                 </NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/relatorios" className={isActive('/relatorios')}>
+                {/* <NavDropdown.Item as={Link} to="/relatorios" className={isActive('/relatorios')}>
                   <i className="bi bi-bar-chart me-2"></i>Relatórios
-                </NavDropdown.Item>
+                </NavDropdown.Item> */}
                 <NavDropdown.Item as={Link} to="/usuarios" className={isActive('/usuarios')}>
                   <i className="bi bi-people me-2"></i>Gerenciar Usuários
                 </NavDropdown.Item>

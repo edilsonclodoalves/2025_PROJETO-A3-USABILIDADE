@@ -122,3 +122,31 @@ exports.deleteProduto = async (req, res) => {
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
+
+// Buscar produtos por termo (para autocomplete)
+exports.searchProdutos = async (req, res) => {
+  const { termo } = req.query;
+
+  try {
+    if (!termo || termo.trim().length < 3) {
+      return res.status(400).json({ message: "Termo de busca deve ter pelo menos 3 caracteres." });
+    }
+
+    const produtos = await Produto.findAll({
+      where: {
+        [Op.or]: [
+          { nome: { [Op.like]: `%${termo}%` } },
+          { descricao: { [Op.like]: `%${termo}%` } }
+        ]
+      },
+      attributes: ['id', 'nome', 'preco', 'imagemUrl'],
+      limit: 10
+    });
+
+    res.status(200).json(produtos);
+  } catch (error) {
+    console.error("Erro ao buscar produtos:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+
