@@ -270,7 +270,7 @@ const Pedidos = () => {
       id: pedido.id,
       nome: pedido.Usuario?.nome || 'N/A',
       email: pedido.Usuario?.email || 'N/A',
-      telefone: formatarTelefone(pedido.Usuario?.telefone),
+      telefone: formatarTelefone(pedido.Usuario?.telefone || ''),
       endereco: pedido.enderecoEntrega
         ? `${pedido.enderecoEntrega.logradouro || ''}, ${pedido.enderecoEntrega.numero || ''} - ${pedido.enderecoEntrega.bairro || ''}, ${pedido.enderecoEntrega.localidade || ''}/${pedido.enderecoEntrega.uf || ''}`
         : 'Endereço não informado',

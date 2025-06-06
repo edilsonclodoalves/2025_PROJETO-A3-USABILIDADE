@@ -41,7 +41,7 @@ const DashboardSimplificado = () => {
 
     const [produtosResponse, pedidosResponse] = await Promise.all([
       axios.get(`${API_URL}/produtos`, { headers }),  // OK
-      axios.get(`${API_URL}/pedidos/me`, { headers }) // Alterado aqui
+      axios.get(`${API_URL}/pedidos/admin/all`, { headers }) // Alterado para buscar todos os pedidos como admin
     ]);
 
     setProdutos(produtosResponse.data);
@@ -74,22 +74,28 @@ const DashboardSimplificado = () => {
 
   // Dados para gráfico de status dos pedidos
   const statusPedidosData = {
-    labels: ['Pendentes', 'Concluídos', 'Cancelados'],
+    labels: ['Pendentes', 'Processando', 'Enviados', 'Entregues', 'Cancelados'],
     datasets: [
       {
         label: 'Status dos Pedidos',
         data: [
-          pedidos.filter(p => p.status === 'Pendente').length,
-          pedidos.filter(p => p.status === 'Concluído').length,
-          pedidos.filter(p => p.status === 'Cancelado').length
+          pedidos.filter(p => p.status === 'pendente').length,
+          pedidos.filter(p => p.status === 'processando').length,
+          pedidos.filter(p => p.status === 'enviado').length,
+          pedidos.filter(p => p.status === 'entregue').length,
+          pedidos.filter(p => p.status === 'cancelado').length
         ],
         backgroundColor: [
           'rgba(255, 206, 86, 0.7)',
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(153, 102, 255, 0.7)',
           'rgba(75, 192, 192, 0.7)',
           'rgba(255, 99, 132, 0.7)'
         ],
         borderColor: [
           'rgba(255, 206, 86, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(153, 102, 255, 1)',
           'rgba(75, 192, 192, 1)',
           'rgba(255, 99, 132, 1)'
         ],
@@ -99,7 +105,15 @@ const DashboardSimplificado = () => {
   };
 
   // Calcular valor total de pedidos
-  const totalPedidos = pedidos.reduce((sum, pedido) => sum + pedido.valorTotal, 0);
+  const calcularTotalPedidos = () => {
+    if (!pedidos || pedidos.length === 0) return 0;
+    return pedidos.reduce((sum, pedido) => {
+      const valorTotal = parseFloat(pedido.valorTotal) || 0;
+      return sum + valorTotal;
+    }, 0);
+  };
+  
+  const totalPedidos = calcularTotalPedidos();
 
   return (
     <Container className="mt-4">
@@ -171,7 +185,7 @@ const DashboardSimplificado = () => {
                       {pedidos.slice(0, 5).map(pedido => (
                         <tr key={pedido.id}>
                           <td>{pedido.id}</td>
-                          <td>R$ {pedido.valorTotal.toFixed(2)}</td>
+                          <td>R$ {parseFloat(pedido.valorTotal || 0).toFixed(2)}</td>
                           <td>{pedido.status}</td>
                         </tr>
                       ))}
