@@ -3,6 +3,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import api from '../services/api';
 import ProductItem from '../components/ProductItem';
+import Collapse from 'bootstrap/js/dist/collapse';
+
 
 const Produtos = () => {
   const [produtos, setProdutos] = useState([]);
@@ -16,7 +18,7 @@ const Produtos = () => {
   useEffect(() => {
     const navbarCollapse = document.getElementById('navbarNav');
     if (navbarCollapse) {
-      collapseNavbarRef.current = new bootstrap.Collapse(navbarCollapse, { toggle: false });
+      collapseNavbarRef.current = new Collapse(navbarCollapse, { toggle: false });
     }
   }, []);
 
