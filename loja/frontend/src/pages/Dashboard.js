@@ -14,7 +14,8 @@ ChartJS.register(
   Title
 );
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api'; // puxando a variável do .env, caso n existir usar esse valor padrão.
+
 
 const DashboardSimplificado = () => {
   const [loading, setLoading] = useState(true);
