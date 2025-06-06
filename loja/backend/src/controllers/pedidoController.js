@@ -304,7 +304,10 @@ const getAllPedidosAdmin = async (req, res) => {
   try {
     const pedidos = await Pedido.findAll({
       where: whereClause,
-      include: [{ model: db.Usuario, attributes: ['id', 'nome', 'email'] }],
+      include: [
+        { model: db.Usuario, attributes: ['id', 'nome', 'email', 'telefone'] },
+        { model: ItemPedido, include: [Produto] }
+      ],
       order: [[validSortBy, validOrder]],
     });
     res.status(200).json(pedidos);
