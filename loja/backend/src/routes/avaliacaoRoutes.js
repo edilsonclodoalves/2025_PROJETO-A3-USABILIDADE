@@ -4,6 +4,9 @@ const avaliacaoController = require("../controllers/avaliacaoController");
 const { authenticate } = require("../middlewares/auth");
 const { authorize } = require("../middlewares/authorize");
 
+// Obter todas as avaliações (Público)
+router.get("/", avaliacaoController.getAllAvaliacoes);
+router.get("/distribuicao-notas", avaliacaoController.getDistribuicaoNotas);
 // Obter todas as avaliações de um produto específico (Público)
 router.get("/produto/:produtoId", avaliacaoController.getAvaliacoesByProduto);
 

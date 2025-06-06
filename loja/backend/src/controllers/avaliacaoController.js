@@ -1,9 +1,10 @@
 const db = require("../models");
+const { Sequelize } = db;
 const Avaliacao = db.Avaliacao;
 const Produto = db.Produto;
 const Usuario = db.Usuario;
 
-// Criar uma nova avaliação para um produto
+// ✅ Criar uma nova avaliação
 exports.createAvaliacao = async (req, res) => {
   const usuarioId = req.user.id;
   const { produtoId, nota, comentario } = req.body;
@@ -13,19 +14,11 @@ exports.createAvaliacao = async (req, res) => {
   }
 
   try {
-    // Verificar se o produto existe
     const produto = await Produto.findByPk(produtoId);
     if (!produto) {
       return res.status(404).json({ message: "Produto não encontrado." });
     }
 
-    // Verificar se o usuário já avaliou este produto (opcional, depende da regra)
-    // const existingAvaliacao = await Avaliacao.findOne({ where: { UsuarioId: usuarioId, ProdutoId: produtoId } });
-    // if (existingAvaliacao) {
-    //   return res.status(400).json({ message: "Você já avaliou este produto." });
-    // }
-
-    // Criar a avaliação
     const novaAvaliacao = await Avaliacao.create({
       UsuarioId: usuarioId,
       ProdutoId: produtoId,
@@ -33,12 +26,11 @@ exports.createAvaliacao = async (req, res) => {
       comentario: comentario,
     });
 
-    // Recarregar para incluir associações (opcional)
     const avaliacaoCriada = await Avaliacao.findByPk(novaAvaliacao.id, {
-        include: [
-            { model: Usuario, attributes: ["id", "nome"] },
-            // { model: Produto, attributes: ["id", "nome"] } // Já temos o produtoId
-        ]
+      include: [
+        { model: Usuario, attributes: ["id", "nome"] },
+        { model: Produto, attributes: ["id", "nome"] }
+      ]
     });
 
     res.status(201).json(avaliacaoCriada);
@@ -46,14 +38,14 @@ exports.createAvaliacao = async (req, res) => {
   } catch (error) {
     console.error("Erro ao criar avaliação:", error);
     if (error.name === 'SequelizeValidationError') {
-        const messages = error.errors.map(e => e.message);
-        return res.status(400).json({ message: "Erro de validação", errors: messages });
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ message: "Erro de validação", errors: messages });
     }
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
 
-// Obter todas as avaliações de um produto específico
+// ✅ Obter todas as avaliações de um produto específico
 exports.getAvaliacoesByProduto = async (req, res) => {
   const produtoId = parseInt(req.params.produtoId, 10);
 
@@ -61,7 +53,7 @@ exports.getAvaliacoesByProduto = async (req, res) => {
     const avaliacoes = await Avaliacao.findAll({
       where: { ProdutoId: produtoId },
       include: [
-        { model: Usuario, attributes: ["id", "nome"] }, // Incluir nome do usuário
+        { model: Usuario, attributes: ["id", "nome"] },
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -72,33 +64,32 @@ exports.getAvaliacoesByProduto = async (req, res) => {
   }
 };
 
-// Obter todas as avaliações feitas por um usuário específico
+// ✅ Obter todas as avaliações feitas por um usuário
 exports.getAvaliacoesByUsuario = async (req, res) => {
-    const usuarioId = parseInt(req.params.usuarioId, 10);
-    const loggedInUserId = req.user.id;
-    const loggedInUserRole = req.user.role;
+  const usuarioId = parseInt(req.params.usuarioId, 10);
+  const loggedInUserId = req.user.id;
+  const loggedInUserRole = req.user.role;
 
-    // Permitir acesso apenas para o próprio usuário ou admin
-    if (loggedInUserRole !== 'admin' && loggedInUserId !== usuarioId) {
-        return res.status(403).json({ message: "Acesso negado." });
-    }
+  if (loggedInUserRole !== 'admin' && loggedInUserId !== usuarioId) {
+    return res.status(403).json({ message: "Acesso negado." });
+  }
 
-    try {
-        const avaliacoes = await Avaliacao.findAll({
-            where: { UsuarioId: usuarioId },
-            include: [
-                { model: Produto, attributes: ["id", "nome", "imagemUrl"] }, // Incluir detalhes do produto avaliado
-            ],
-            order: [["createdAt", "DESC"]],
-        });
-        res.status(200).json(avaliacoes);
-    } catch (error) {
-        console.error("Erro ao buscar avaliações do usuário:", error);
-        res.status(500).json({ message: "Erro interno do servidor." });
-    }
+  try {
+    const avaliacoes = await Avaliacao.findAll({
+      where: { UsuarioId: usuarioId },
+      include: [
+        { model: Produto, attributes: ["id", "nome", "imagemUrl"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.status(200).json(avaliacoes);
+  } catch (error) {
+    console.error("Erro ao buscar avaliações do usuário:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
 };
 
-// Atualizar uma avaliação (apenas o próprio usuário)
+// ✅ Atualizar uma avaliação (somente o próprio usuário)
 exports.updateAvaliacao = async (req, res) => {
   const avaliacaoId = parseInt(req.params.id, 10);
   const usuarioId = req.user.id;
@@ -115,18 +106,19 @@ exports.updateAvaliacao = async (req, res) => {
       return res.status(404).json({ message: "Avaliação não encontrada." });
     }
 
-    // Verificar se o usuário logado é o dono da avaliação
     if (avaliacao.UsuarioId !== usuarioId) {
       return res.status(403).json({ message: "Acesso negado. Você só pode editar suas próprias avaliações." });
     }
 
     avaliacao.nota = parseInt(nota, 10);
-    avaliacao.comentario = comentario || avaliacao.comentario; // Permite remover comentário passando null ou ""
+    avaliacao.comentario = comentario ?? avaliacao.comentario;
     await avaliacao.save();
 
-    // Recarregar para incluir associações (opcional)
     const avaliacaoAtualizada = await Avaliacao.findByPk(avaliacao.id, {
-        include: [{ model: Usuario, attributes: ["id", "nome"] }]
+      include: [
+        { model: Usuario, attributes: ["id", "nome"] },
+        { model: Produto, attributes: ["id", "nome"] }
+      ]
     });
 
     res.status(200).json(avaliacaoAtualizada);
@@ -134,14 +126,14 @@ exports.updateAvaliacao = async (req, res) => {
   } catch (error) {
     console.error("Erro ao atualizar avaliação:", error);
     if (error.name === 'SequelizeValidationError') {
-        const messages = error.errors.map(e => e.message);
-        return res.status(400).json({ message: "Erro de validação", errors: messages });
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ message: "Erro de validação", errors: messages });
     }
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
 
-// Deletar uma avaliação (próprio usuário ou admin)
+// ✅ Deletar uma avaliação (próprio usuário ou admin)
 exports.deleteAvaliacao = async (req, res) => {
   const avaliacaoId = parseInt(req.params.id, 10);
   const usuarioId = req.user.id;
@@ -154,16 +146,53 @@ exports.deleteAvaliacao = async (req, res) => {
       return res.status(404).json({ message: "Avaliação não encontrada." });
     }
 
-    // Verificar permissão: dono da avaliação ou admin
     if (avaliacao.UsuarioId !== usuarioId && userRole !== "admin") {
       return res.status(403).json({ message: "Acesso negado." });
     }
 
     await avaliacao.destroy();
-    res.status(204).send(); // Sem conteúdo
+    res.status(204).send();
 
   } catch (error) {
     console.error("Erro ao deletar avaliação:", error);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
+};
+
+// ✅ Obter todas as avaliações
+exports.getAllAvaliacoes = async (req, res) => {
+  try {
+    const avaliacoes = await Avaliacao.findAll({
+      include: [
+        { model: Usuario, attributes: ['id', 'nome'] },
+        { model: Produto, attributes: ['id', 'nome'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json(avaliacoes);
+  } catch (error) {
+    console.error('Erro ao buscar todas as avaliações:', error);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
+
+// ✅ Distribuição de notas
+exports.getDistribuicaoNotas = async (req, res) => {
+  try {
+    const notas = await Avaliacao.findAll({
+      attributes: [
+        'nota',
+        [Sequelize.fn('COUNT', Sequelize.col('nota')), 'quantidade']
+      ],
+      group: ['nota'],
+      order: [['nota', 'DESC']]
+    });
+
+    res.status(200).json(notas);
+  } catch (error) {
+    console.error("Erro ao buscar distribuição de notas:", error);
+    res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
 };

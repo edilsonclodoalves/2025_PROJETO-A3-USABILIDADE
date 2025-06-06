@@ -160,6 +160,7 @@ const Pedidos = () => {
     return () => buscarUsuarios.cancel();
   }, [buscaUsuarioTermo]);
 
+
   // Buscar produtos com debounce
   const buscarProdutos = debounce(async (termo) => {
     if (termo.length < 3) {
