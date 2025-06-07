@@ -13,7 +13,7 @@ const Home = () => {
 
       <div className="row align-items-md-stretch">
         <div className="col-md-6 mb-4">
-          <div className="h-100 p-5 text-white bg-dark rounded-3">
+          <div className="h-100 p-5 text-white bg-primary rounded-3">
             <h2>Nossos Sabores</h2>
             <p>Descubra uma variedade incrível de sabores artesanais, feitos com ingredientes frescos e selecionados.</p>
             {/* Adicionar link ou botão se necessário */}
