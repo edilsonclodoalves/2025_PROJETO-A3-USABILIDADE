@@ -35,14 +35,12 @@ const Pedidos = () => {
   const [produtosBusca, setProdutosBusca] = useState([]);
   const [buscaUsuarioTermo, setBuscaUsuarioTermo] = useState('');
   const [buscaProdutoTermo, setBuscaProdutoTermo] = useState('');
-  const [updatingStatus, setUpdatingStatus] = useState(null); // Novo estado para feedback de atualização
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
-  // Refs para modais
   const editModalRef = useRef(null);
   const createModalRef = useRef(null);
   const contatoModalRef = useRef(null);
 
-  // Função para fechar o navbar colapsável
   const collapseNavbar = useCallback(() => {
     const navbarCollapse = document.getElementById('navbarNav');
     if (navbarCollapse && navbarCollapse.classList.contains('show')) {
@@ -54,7 +52,6 @@ const Pedidos = () => {
     }
   }, []);
 
-  // Inicializar modais
   useEffect(() => {
     const initializeModals = () => {
       try {
@@ -116,7 +113,6 @@ const Pedidos = () => {
     };
   }, []);
 
-  // Buscar pedidos
   const fetchPedidos = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -140,7 +136,6 @@ const Pedidos = () => {
     fetchPedidos();
   }, [fetchPedidos]);
 
-  // Buscar usuários com debounce
   const buscarUsuarios = useCallback(debounce(async (termo) => {
     if (termo.length < 3) {
       setUsuariosBusca([]);
@@ -160,8 +155,6 @@ const Pedidos = () => {
     return () => buscarUsuarios.cancel();
   }, [buscaUsuarioTermo, buscarUsuarios]);
 
-
-  // Buscar produtos com debounce
   const buscarProdutos = useCallback(debounce(async (termo) => {
     if (termo.length < 3) {
       setProdutosBusca([]);
@@ -181,7 +174,6 @@ const Pedidos = () => {
     return () => buscarProdutos.cancel();
   }, [buscaProdutoTermo, buscarProdutos]);
 
-  // Função para buscar CEP
   const buscarCEP = async (cep) => {
     if (!cep || cep.length !== 8) return;
     
@@ -224,6 +216,10 @@ const Pedidos = () => {
   };
 
   const formatarStatus = (status) => {
+    if (!status || typeof status !== 'string') {
+      return <span className="badge bg-secondary">Desconhecido</span>;
+    }
+
     const statusStyles = {
       pendente: 'badge bg-warning text-dark',
       processando: 'badge bg-info text-dark',
@@ -231,6 +227,7 @@ const Pedidos = () => {
       entregue: 'badge bg-success',
       cancelado: 'badge bg-danger',
     };
+
     return (
       <span className={statusStyles[status] || 'badge bg-secondary'}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -298,9 +295,9 @@ const Pedidos = () => {
     console.log('Dados do pedido em handleViewContato:', pedido);
     setViewingContato({
       id: pedido.id,
-      nome: pedido.Usuario?.nome || 'N/A',
-      email: pedido.Usuario?.email || 'N/A',
-      telefone: formatarTelefone(pedido.Usuario?.telefone || ''),
+      nome: isAdminView ? (pedido.Usuario?.nome || 'N/A') : (user.nome || 'N/A'),
+      email: isAdminView ? (pedido.Usuario?.email || 'N/A') : (user.email || 'N/A'),
+      telefone: formatarTelefone(isAdminView ? (pedido.Usuario?.telefone || '') : (user.telefone || '')),
       endereco: pedido.enderecoEntrega
         ? `${pedido.enderecoEntrega.logradouro || ''}, ${pedido.enderecoEntrega.numero || ''} - ${pedido.enderecoEntrega.bairro || ''}, ${pedido.enderecoEntrega.localidade || ''}/${pedido.enderecoEntrega.uf || ''}`
         : 'Endereço não informado',
@@ -443,27 +440,39 @@ const Pedidos = () => {
     });
   };
 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.post('/pedidos/admin', createForm);
-      setPedidos((prev) => [response.data, ...prev]);
-      setCreateForm({
-        usuarioId: '',
-        nome: '',
-        telefone: '',
-        enderecoEntrega: { cep: '', logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
-        itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
-      });
-      toast.success('Pedido criado com sucesso!');
-      if (createModalRef.current) {
-        createModalRef.current.hide();
-      }
-    } catch (err) {
-      console.error('Erro ao criar pedido:', err);
-      toast.error('Falha ao criar o pedido.');
+const handleCreateSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const formToSend = {
+      ...createForm,
+      itens: createForm.itens.map(item => ({
+        ...item,
+        produtoId: parseInt(item.produtoId, 10),
+        quantidade: parseInt(item.quantidade, 10),
+        preco: parseFloat(item.preco),
+      })),
+    };
+
+    const response = await api.post('/pedidos/admin', formToSend);
+    // await fetchPedidos()
+    setPedidos((prev) => [response.data, ...prev]);
+    setCreateForm({
+      usuarioId: '',
+      nome: '',
+      telefone: '',
+      enderecoEntrega: { cep: '', logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
+      itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
+    });
+    toast.success('Pedido criado com sucesso!');
+    if (createModalRef.current) {
+      createModalRef.current.hide();
     }
-  };
+  } catch (err) {
+    console.error('Erro ao criar pedido:', err);
+    toast.error('Falha ao criar o pedido.');
+  }
+};
 
   const toggleRow = (pedidoId) => {
     setExpandedRows((prev) =>
@@ -473,22 +482,20 @@ const Pedidos = () => {
     );
   };
 
-  // Função para atualizar status do pedido
   const handleStatusChange = useCallback(
     async (pedidoId, newStatus) => {
-      setUpdatingStatus(pedidoId); // Indicar que o pedido está sendo atualizado
+      setUpdatingStatus(pedidoId);
       try {
         const response = await api.patch(`/pedidos/${pedidoId}/status`, {
           status: newStatus,
         });
-        // Usar a resposta da API, se disponível, ou atualizar localmente
         setPedidos((prev) =>
           prev.map((pedido) =>
             pedido.id === pedidoId
               ? {
                   ...pedido,
                   status: response.data?.status || newStatus,
-                  updatedAt: response.data?.updatedAt || new Date().toISOString(), // Forçar re-render
+                  updatedAt: response.data?.updatedAt || new Date().toISOString(),
                 }
               : pedido
           )
@@ -497,7 +504,6 @@ const Pedidos = () => {
       } catch (err) {
         console.error('Erro ao atualizar status:', err);
         toast.error('Erro ao atualizar status.');
-        // Opcional: Re-buscar pedidos em caso de erro para garantir consistência
         fetchPedidos();
       } finally {
         setUpdatingStatus(null);
@@ -560,7 +566,7 @@ const Pedidos = () => {
                 placeholder="Digite ID ou e-mail"
               />
             </div>
-            {user.role === 'admin' && (
+            {isAdminView && (user.role === 'admin' || user.role === 'operador') && (
               <div className="col-md-4 d-flex align-items-end">
                 <button
                   className="btn btn-primary"
@@ -658,6 +664,7 @@ const Pedidos = () => {
                         name="telefone"
                         value={createForm.telefone}
                         onChange={(e) => handleCreateChange(e)}
+                        trước
                         placeholder="(XX) XXXXX-XXXX"
                       />
                     </div>
@@ -1020,8 +1027,8 @@ const Pedidos = () => {
                 Fechar
               </button>
             </div>
-           </div>
-         </div>
+          </div>
+        </div>
       </div>
 
       <div
@@ -1054,9 +1061,9 @@ const Pedidos = () => {
                     type="text"
                     className="form-control"
                     name="telefone"
-                    value={editForm?.telefone || '' || ''}
+                    value={editForm?.telefone || ''}
                     onChange={handleEditChange}
-                    placeholder="(XX) XXXX-XXXX"
+                    placeholder="(XX) XXXXX-XXXX"
                   />
                 </div>
                 <div className="mb-3">
@@ -1065,7 +1072,7 @@ const Pedidos = () => {
                     type="text"
                     className="form-control"
                     name="enderecoEntrega.logradouro"
-                    value={editForm.enderecoEntrega?.logradouro || '' || ''}
+                    value={editForm.enderecoEntrega?.logradouro || ''}
                     onChange={handleEditChange}
                   />
                 </div>
@@ -1085,7 +1092,7 @@ const Pedidos = () => {
                     type="text"
                     className="form-control"
                     name="enderecoEntrega.bairro"
-                    value={editForm.enderecoEntrega?.bairro || '' || ''}
+                    value={editForm.enderecoEntrega?.bairro || ''}
                     onChange={handleEditChange}
                   />
                 </div>
@@ -1095,7 +1102,7 @@ const Pedidos = () => {
                     type="text"
                     className="form-control"
                     name="enderecoEntrega.localidade"
-                    value={editForm.enderecoEntrega?.localidade || '' || ''}
+                    value={editForm.enderecoEntrega?.localidade || ''}
                     onChange={handleEditChange}
                   />
                 </div>
@@ -1105,7 +1112,7 @@ const Pedidos = () => {
                     type="text"
                     className="form-control"
                     name="enderecoEntrega.uf"
-                    value={editForm.enderecoEntrega?.uf || '' || ''}
+                    value={editForm.enderecoEntrega?.uf || ''}
                     onChange={handleEditChange}
                   />
                 </div>

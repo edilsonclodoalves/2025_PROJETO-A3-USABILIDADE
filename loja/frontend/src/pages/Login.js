@@ -7,7 +7,7 @@ const Login = () => {
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -23,19 +23,19 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // A lógica de chamada ao backend está no AuthContext
-    // O hook useGoogleLogin é chamado diretamente
-    // Precisamos garantir que o fluxo de idToken esteja correto
-    try {
-        loginWithGoogle();
-        // O redirecionamento ou atualização de estado ocorrerá no AuthContext após sucesso
-    } catch (err) {
-        setError('Falha no login com Google.');
-        console.error("Google login trigger error:", err);
-    }
+  // const handleGoogleLogin = () => {
+  //   // A lógica de chamada ao backend está no AuthContext
+  //   // O hook useGoogleLogin é chamado diretamente
+  //   // Precisamos garantir que o fluxo de idToken esteja correto
+  //   try {
+  //       loginWithGoogle();
+  //       // O redirecionamento ou atualização de estado ocorrerá no AuthContext após sucesso
+  //   } catch (err) {
+  //       setError('Falha no login com Google.');
+  //       console.error("Google login trigger error:", err);
+  //   }
 
-  };
+  // };
 
   return (
     <div className="row justify-content-center">
@@ -73,9 +73,9 @@ const Login = () => {
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>
             </form>
-            <button onClick={handleGoogleLogin} className="btn btn-danger w-100 mb-3" disabled={loading}>
+            {/* <button onClick={handleGoogleLogin} className="btn btn-danger w-100 mb-3" disabled={loading}>
               <i className="bi bi-google me-2"></i> Entrar com Google
-            </button>
+            </button> */}
             <div className="text-center">
               <p>Não tem uma conta? <Link to="/register">Registre-se</Link></p>
               {/* Adicionar link para "Esqueci minha senha" se necessário */}

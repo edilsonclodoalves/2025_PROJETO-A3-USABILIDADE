@@ -15,6 +15,69 @@ const CustomNavbar = () => {
 
   const isActive = (path) => (location.pathname === path ? 'active' : '');
 
+  // Configuration for role-based navigation
+  const roleConfig = {
+    admin: {
+      links: [
+        { path: '/', label: 'Home', icon: 'bi-house-door' },
+        { path: '/produtos', label: 'Produtos', icon: 'bi-shop' },
+      ],
+      dropdown: {
+        title: (
+          <>
+            <i className="bi bi-gear me-1"></i>Administração
+          </>
+        ),
+        id: 'navbarDropdownAdmin',
+        items: [
+          { path: '/dashboard', label: 'Dashboard', icon: 'bi-speedometer2' },
+          { path: '/admin/pedidos', label: 'Gerenciar Pedidos', icon: 'bi-list-ul' },
+          { path: '/usuarios', label: 'Gerenciar Usuários', icon: 'bi-people' },
+          { path: '/admin/produtos', label: 'Gerenciar Produtos', icon: 'bi-box-seam' },
+        ],
+      },
+    },
+    operador: {
+      links: [
+        { path: '/', label: 'Home', icon: 'bi-house-door' },
+        { path: '/produtos', label: 'Produtos', icon: 'bi-shop' },
+      ],
+      dropdown: {
+        title: (
+          <>
+            <i className="bi bi-gear me-1"></i>Administração
+          </>
+        ),
+        id: 'navbarDropdownAdmin',
+        items: [
+          { path: '/admin/pedidos', label: 'Gerenciar Pedidos', icon: 'bi-list-ul' },
+          { path: '/admin/produtos', label: 'Gerenciar Produtos', icon: 'bi-box-seam' },
+        ],
+      },
+    },
+    cliente: {
+      links: [
+        { path: '/', label: 'Home', icon: 'bi-house-door' },
+        { path: '/produtos', label: 'Produtos', icon: 'bi-shop' },
+        { path: '/carrinho', label: 'Carrinho', icon: 'bi-cart' },
+        { path: '/pedidos', label: 'Meus Pedidos', icon: 'bi-list-ul' },
+      ],
+      dropdown: null,
+    },
+    default: {
+      links: [
+        { path: '/', label: 'Home', icon: 'bi-house-door' },
+        { path: '/produtos', label: 'Produtos', icon: 'bi-shop' },
+      ],
+      dropdown: null,
+    },
+  };
+
+  // Determine the config based on authentication and role
+  const config = isAuthenticated && user?.role
+    ? roleConfig[user.role] || roleConfig.default
+    : roleConfig.default;
+
   return (
     <Navbar bg="primary" variant="dark" expand="lg" className="mb-4" collapseOnSelect>
       <Container fluid>
@@ -24,48 +87,28 @@ const CustomNavbar = () => {
         <Navbar.Toggle aria-controls="navbarNav" />
         <Navbar.Collapse id="navbarNav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/" className={isActive('/')}>
-              <i className="bi bi-house-door me-1"></i>Home
-            </Nav.Link>
-            <Nav.Link as={Link} to="/produtos" className={isActive('/produtos')}>
-              <i className="bi bi-shop me-1"></i>Produtos
-            </Nav.Link>
-            {isAuthenticated && (
-              <Nav.Link as={Link} to="/carrinho" className={isActive('/carrinho')}>
-                <i className="bi bi-cart me-1"></i>Carrinho
-              </Nav.Link>
-            )}
-            {isAuthenticated && user?.role !== 'admin' && user?.role !== 'operador' && (
-              <Nav.Link as={Link} to="/pedidos" className={isActive('/pedidos')}>
-                <i className="bi bi-list-check me-1"></i>Meus Pedidos
-              </Nav.Link>
-            )}
-            {isAuthenticated && (user?.role === 'admin' || user?.role === 'operador') && (
-              <Nav.Link as={Link} to="/admin/pedidos" className={isActive('/admin/pedidos')}>
-                <i className="bi bi-list-ul me-1"></i>Pedidos
-              </Nav.Link>
-            )}
-            {isAuthenticated && user?.role === 'admin' && (
-              <NavDropdown
-                title={
-                  <>
-                    <i className="bi bi-gear me-1"></i>Administração
-                  </>
-                }
-                id="navbarDropdownAdmin"
+            {config.links.map((link) => (
+              <Nav.Link
+                key={link.path}
+                as={Link}
+                to={link.path}
+                className={isActive(link.path)}
               >
-                <NavDropdown.Item as={Link} to="/dashboard" className={isActive('/dashboard')}>
-                  <i className="bi bi-speedometer2 me-2"></i>Dashboard
-                </NavDropdown.Item>
-                {/* <NavDropdown.Item as={Link} to="/relatorios" className={isActive('/relatorios')}>
-                  <i className="bi bi-bar-chart me-2"></i>Relatórios
-                </NavDropdown.Item> */}
-                <NavDropdown.Item as={Link} to="/usuarios" className={isActive('/usuarios')}>
-                  <i className="bi bi-people me-2"></i>Gerenciar Usuários
-                </NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/admin/produtos" className={isActive('/admin/produtos')}>
-                  <i className="bi bi-box-seam me-2"></i>Gerenciar Produtos
-                </NavDropdown.Item>
+                <i className={`bi ${link.icon} me-1`}></i>{link.label}
+              </Nav.Link>
+            ))}
+            {isAuthenticated && config.dropdown && (
+              <NavDropdown title={config.dropdown.title} id={config.dropdown.id}>
+                {config.dropdown.items.map((item) => (
+                  <NavDropdown.Item
+                    key={item.path}
+                    as={Link}
+                    to={item.path}
+                    className={isActive(item.path)}
+                  >
+                    <i className={`bi ${item.icon} me-2`}></i>{item.label}
+                  </NavDropdown.Item>
+                ))}
               </NavDropdown>
             )}
           </Nav>
