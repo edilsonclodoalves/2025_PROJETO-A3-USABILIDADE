@@ -28,7 +28,8 @@ const Pedidos = () => {
     itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
   });
   const [filterStatus, setFilterStatus] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  //const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState([]);
   const [viewingContato, setViewingContato] = useState(null);
   const [usuariosBusca, setUsuariosBusca] = useState([]);
@@ -703,7 +704,6 @@ const handleCreateSubmit = async (e) => {
                         name="telefone"
                         value={createForm.telefone}
                         onChange={(e) => handleCreateChange(e)}
-                        trước
                         placeholder="(XX) XXXXX-XXXX"
                       />
                     </div>
