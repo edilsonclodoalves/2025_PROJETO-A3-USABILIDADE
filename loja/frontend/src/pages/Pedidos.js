@@ -455,8 +455,43 @@ const handleCreateSubmit = async (e) => {
     };
 
     const response = await api.post('/pedidos/admin', formToSend);
-    // await fetchPedidos()
-    setPedidos((prev) => [response.data, ...prev]);
+    console.log('Resposta da API:', response.data);
+
+    // Extrair o objeto 'pedido' da resposta
+    let novoPedido = response.data.pedido || response.data;
+
+    // Se os dados do usuário não estão completos, buscar do estado atual
+    if (!novoPedido.Usuario && createForm.usuarioId) {
+      // Encontrar o usuário nos dados de busca ou criar objeto básico
+      const usuarioEncontrado = usuariosBusca.find(u => u.id === createForm.usuarioId);
+      
+      novoPedido = {
+        ...novoPedido,
+        Usuario: usuarioEncontrado || {
+          id: createForm.usuarioId,
+          nome: createForm.nome,
+          email: 'N/A', // Você pode buscar isso se necessário
+          telefone: createForm.telefone
+        }
+      };
+    }
+
+    // Garantir que os itens estão estruturados corretamente
+    if (!novoPedido.ItemPedidos && createForm.itens) {
+      novoPedido.ItemPedidos = createForm.itens.map((item, index) => ({
+        id: `temp_${index}`, // ID temporário
+        quantidade: item.quantidade,
+        precoUnitario: item.preco,
+        Produto: {
+          nome: item.nomeProduto
+        }
+      }));
+    }
+
+    // Adicionar o novo pedido ao estado
+    setPedidos((prev) => [novoPedido, ...prev]);
+
+    // Resetar o formulário
     setCreateForm({
       usuarioId: '',
       nome: '',
@@ -464,15 +499,19 @@ const handleCreateSubmit = async (e) => {
       enderecoEntrega: { cep: '', logradouro: '', numero: '', bairro: '', localidade: '', uf: '' },
       itens: [{ produtoId: '', nomeProduto: '', quantidade: 1 }],
     });
-    toast.success('Pedido criado com sucesso!');
+
+    // Fechar o modal
     if (createModalRef.current) {
       createModalRef.current.hide();
     }
+
+    toast.success('Pedido criado com sucesso!');
   } catch (err) {
     console.error('Erro ao criar pedido:', err);
     toast.error('Falha ao criar o pedido.');
   }
 };
+
 
   const toggleRow = (pedidoId) => {
     setExpandedRows((prev) =>
@@ -556,7 +595,7 @@ const handleCreateSubmit = async (e) => {
                 <option value="cancelado">Cancelado</option>
               </select>
             </div>
-            <div className="col-md-4">
+            {/* <div className="col-md-4">
               <label className="form-label">Buscar por ID ou Usuário</label>
               <input
                 type="text"
@@ -565,7 +604,7 @@ const handleCreateSubmit = async (e) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Digite ID ou e-mail"
               />
-            </div>
+            </div> */}
             {isAdminView && (user.role === 'admin' || user.role === 'operador') && (
               <div className="col-md-4 d-flex align-items-end">
                 <button
