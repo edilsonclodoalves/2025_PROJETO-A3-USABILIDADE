@@ -16,7 +16,7 @@ const formatTelefone = (telefone) => {
 
 const validarEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validarTelefone = (telefone) => !telefone || /^\(\d{2}\)\s?\d{5}-\d{4}$/.test(telefone);
-const validarSenha = (senha) => !senha || senha.length >= 6;
+const validarSenha = (senha) => !senha || senha.length >= 8;
 const limparTelefone = (telefone) => telefone?.replace(/\D/g, "") || null;
 
 const validarFormulario = (dados, isEdit = false) => {
@@ -28,9 +28,8 @@ const validarFormulario = (dados, isEdit = false) => {
   if (!isEdit && !dados.senha) erros.push("Senha é obrigatória");
   
   if (dados.email && !validarEmail(dados.email)) erros.push("Email inválido");
-  if (dados.senha && !validarSenha(dados.senha)) erros.push("Senha deve ter pelo menos 6 caracteres");
+  if (dados.senha && !validarSenha(dados.senha)) erros.push("Senha deve ter pelo menos 8 caracteres");
   // if (dados.telefone && !validarTelefone(dados.telefone)) erros.push("Telefone deve estar no formato (XX) XXXXX-XXXX");
-  //valida o telefone apenas se for
   
   return erros;
 };
@@ -40,7 +39,7 @@ const validarResetSenha = (dados) => {
   
   if (!dados.novaSenha) erros.push("Nova senha é obrigatória");
   if (!dados.confirmarSenha) erros.push("Confirmação de senha é obrigatória");
-  if (dados.novaSenha && dados.novaSenha.length < 6) erros.push("Senha deve ter pelo menos 6 caracteres");
+  if (dados.novaSenha && dados.novaSenha.length < 8) erros.push("Senha deve ter pelo menos 8 caracteres");
   if (dados.novaSenha !== dados.confirmarSenha) erros.push("As senhas não coincidem");
   
   return erros;
@@ -175,6 +174,28 @@ const UserFormFields = ({ formData, handleChange, isEdit = false }) => (
         Use o formato (XX) XXXXX-XXXX{isEdit ? ". Deixe em branco para remover." : ". Campo opcional."}
       </Form.Text>
     </Form.Group>  
+
+    {!isEdit && (
+      <Form.Group className="mb-3">
+        <Form.Label>
+          Senha <span className="text-danger">*</span>
+        </Form.Label>
+        <Form.Control
+          type="password"
+          name="senha"
+          value={formData.senha}
+          onChange={handleChange}
+          required
+          placeholder="Digite a senha"
+          minLength={8}
+          aria-describedby="senha-help"
+        />
+        <Form.Text id="senha-help" className="text-muted">
+          A senha deve ter pelo menos 8 caracteres
+        </Form.Text>
+      </Form.Group>
+    )}
+    
     <Form.Group className="mb-3">
       <Form.Label>
         Papel <span className="text-danger">*</span>
@@ -211,11 +232,11 @@ const ResetPasswordFields = ({ formData, handleChange }) => (
         onChange={handleChange}
         required
         placeholder="Digite a nova senha"
-        minLength={6}
+        minLength={8}
         aria-describedby="nova-senha-help"
       />
       <Form.Text id="nova-senha-help" className="text-muted">
-        A senha deve ter pelo menos 6 caracteres
+        A senha deve ter pelo menos 8 caracteres
       </Form.Text>
     </Form.Group>
     
@@ -537,7 +558,6 @@ const Usuarios = () => {
       email: usuario.email,
       telefone: usuario.telefone || "",
       role: usuario.role,
-      senha: "",
     });
     editModal.open();
   }, [editForm, editModal]);
@@ -606,10 +626,6 @@ const Usuarios = () => {
         telefone: limparTelefone(editForm.formData.telefone),
         role: editForm.formData.role,
       };
-
-      if (editForm.formData.senha) {
-        dataToSend.senha = editForm.formData.senha;
-      }
 
       await api.put(`/usuarios/${editingUser.id}`, dataToSend);
       editModal.close();
@@ -805,4 +821,3 @@ const Usuarios = () => {
 };
 
 export default Usuarios;
-
