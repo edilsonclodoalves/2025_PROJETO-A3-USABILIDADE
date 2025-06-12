@@ -92,7 +92,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 
 ---
 
-## 🛠️Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### Frontend
 - **React.js 18.x** - Biblioteca para construção de interfaces
@@ -468,11 +468,13 @@ DELETE /api/usuarios/:id      # Remover usuário (admin)
 
 **Desenvolvido para a A3 da UC - Usabilidade, desenvolvimento web, mobile e jogos por**: 
 
-EDILSON CLODOALVES GALVÃO DE LIMA - 32214931
-FLÁVIO GREGO SANTIAGO - 322129707
-WEVERTON ARAÚJO MARTINS - 32210007
-DAVI DOS REIS DA FONSECA RAMOS - 12725185207
-KAUAN GUILHERME PINTO DOS SANTOS - 12724228176
+---
+- DAVI DOS REIS DA FONSECA RAMOS - 12725185207
+- EDILSON CLODOALVES GALVÃO DE LIMA - 32214931
+- KAUAN GUILHERME PINTO DOS SANTOS - 12724228176
+- FLÁVIO GREGO SANTIAGO - 322129707
+- WEVERTON ARAÚJO MARTINS - 32210007
+---
 
 [⬆ Voltar ao topo](#-sistema-de-gestão-para-sorveteria)
 
