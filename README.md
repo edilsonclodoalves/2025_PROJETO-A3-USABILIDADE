@@ -476,6 +476,8 @@ DELETE /api/usuarios/:id      # Remover usuário (admin)
 - WEVERTON ARAÚJO MARTINS - 32210007
 
 <div align="center">
+
+  
 [⬆ Voltar ao topo](#-sistema-de-gestão-para-sorveteria)
 
 </div>
