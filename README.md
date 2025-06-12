@@ -27,7 +27,7 @@
 - [Uso](#uso)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [API Endpoints](#api-endpoints)
-- [Grupo](#GRUOPO-1)
+- [Grupo](#GRUPO-1)
 
 
 ---
@@ -465,18 +465,17 @@ DELETE /api/usuarios/:id      # Remover usuário (admin)
 ---
 
 
-<div align="center">
 
 **Desenvolvido para a A3 da UC - Usabilidade, desenvolvimento web, mobile e jogos por**: 
 
-## 📋GRUOPO 1
+## 📋GRUPO 1
 - DAVI DOS REIS DA FONSECA RAMOS - 12725185207
 - EDILSON CLODOALVES GALVÃO DE LIMA - 32214931
 - KAUAN GUILHERME PINTO DOS SANTOS - 12724228176
 - FLÁVIO GREGO SANTIAGO - 322129707
 - WEVERTON ARAÚJO MARTINS - 32210007
 
-
+<div align="center">
 [⬆ Voltar ao topo](#-sistema-de-gestão-para-sorveteria)
 
 </div>
