@@ -15,7 +15,7 @@
 
 ---
 
-## 📋 Índice
+## 📋Índice
 
 - [Sobre o Projeto](#sobre-o-projeto)
 - [Funcionalidades](#funcionalidades)
@@ -31,11 +31,11 @@
 
 ---
 
-## 🎯 Sobre o Projeto
+## 🎯Sobre o Projeto
 
 O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moderna desenvolvida para otimizar as operações diárias de sorveteria, desde o gerenciamento de produtos até a entrega final ao cliente. O sistema oferece uma experiência completa tanto para administradores quanto para clientes, com interface intuitiva e funcionalidades robustas.
 
-### 🌟 Principais Características
+### 🌟Principais Características
 
 - **Interface Responsiva**: Design moderno que funciona perfeitamente em desktop, tablet e mobile
 - **Autenticação**: Auto registro e Login com e-mail e senha
@@ -44,7 +44,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 - **Integração Externa**: Preenchimento automático de endereços via API ViaCEP
 - **Segurança Avançada**: JWT tokens, controle de acesso baseado em papéis e validações de formulários
 
-### 🎯 Público-Alvo
+### 🎯Público-Alvo
 
 - **Proprietários de Sorveteria**: Controle total sobre operações e relatórios
 - **Operadores**: Interface simplificada para processamento de pedidos
@@ -52,7 +52,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 
 ---
 
-## ⚡ Funcionalidades
+## ⚡Funcionalidades
 
 ### 🔐 Autenticação e Autorização
 - Registro de novos usuários com validação completa
@@ -61,38 +61,38 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 - Proteção de rotas baseada em permissões
 - Gerenciamento de sessão com JWT tokens
 
-### 🛍️ Gestão de Produtos
+### 🛍️Gestão de Produtos
 - Cadastro completo de produtos com imagens
 - Busca avançada com filtros por nome, descrição e preço
 - Ordenação por diferentes critérios
 - Interface administrativa para CRUD completo
 
-### 🛒 Carrinho de Compras
+### 🛒Carrinho de Compras
 - Adição/remoção de produtos com validação de estoque
 - Modificação de quantidades em tempo real
 - Cálculo automático de totais
 - Persistência do carrinho por usuário
 - Interface intuitiva e responsiva
 
-### 📦 Sistema de Pedidos
+### 📦Sistema de Pedidos
 - Conversão automática do carrinho em pedido
 - Preenchimento automático de endereço via CEP (ViaCEP)
 - Acompanhamento de status em tempo real
 - Histórico completo de pedidos
 - Interface administrativa para gerenciamento
 
-### 📊 Relatórios e Analytics
+### 📊Relatórios e Analytics
 - Análise dos últimos pedidos
 - Gráfico dos preços de produtos e de pedidos
 - Resumo dos dados de pedidos e produtos
 
-### 🔄 Comunicação em Tempo Real
+### 🔄Comunicação em Tempo Real
 - Notificações instantâneas via Socket.IO
 - Atualizações de status de pedidos
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️Tecnologias Utilizadas
 
 ### Frontend
 - **React.js 18.x** - Biblioteca para construção de interfaces
@@ -117,7 +117,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️Arquitetura
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -160,7 +160,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 
 ---
 
-## 📋 Pré-requisitos
+## 📋Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado:
 
