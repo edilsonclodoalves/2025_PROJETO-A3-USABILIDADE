@@ -10,7 +10,6 @@
 
 **Uma solução web para gestão de sorveteria com uma interface moderna e funcionalidades avançadas**
 
-[Demonstração](#demonstração) • [Instalação](#instalação) • [Configuração](#configuração) • [Documentação](#documentação)
 
 </div>
 
@@ -32,7 +31,7 @@
 
 ---
 
-## 🎯Sobre o Projeto
+## 🎯 Sobre o Projeto
 
 O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moderna desenvolvida para otimizar as operações diárias de sorveteria, desde o gerenciamento de produtos até a entrega final ao cliente. O sistema oferece uma experiência completa tanto para administradores quanto para clientes, com interface intuitiva e funcionalidades robustas.
 
@@ -188,12 +187,12 @@ git --version
 
 ---
 
-## 🚀 Instalação
+## 🚀Instalação
 
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/sistema-gestao-sorveteria.git
+git clone https://github.com/edilsonclodoalves/2025_PROJETO-A3-USABILIDADE.git
 cd sistema-gestao-sorveteria
 ```
 
@@ -231,7 +230,7 @@ EXIT;
 
 ---
 
-## ⚙️ Configuração
+## ⚙️Configuração
 
 ### 1. Variáveis de Ambiente - Backend
 
@@ -265,7 +264,7 @@ REACT_APP_API_URL=http://localhost:3001/api
 
 ```
 
-## 🎮 Uso
+## 🎮Uso
 
 ### 1. Configurar o Backend
 
@@ -307,7 +306,7 @@ npm start
 - **API**: http://localhost:3001/api
 
 
-## 📁 Estrutura do Projeto
+## 📁Estrutura do Projeto
 
 ```
 2025_PROJETO-A3-USABILIDADE-main/
@@ -416,7 +415,7 @@ npm start
 
 ---
 
-## 🔌 API Endpoints
+## 🔌API Endpoints
 
 ### Autenticação
 ```
