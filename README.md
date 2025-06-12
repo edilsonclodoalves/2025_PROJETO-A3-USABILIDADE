@@ -92,7 +92,7 @@ O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moder
 
 ---
 
-## Tecnologias Utilizadas
+## 🛠️Tecnologias Utilizadas
 
 ### Frontend
 - **React.js 18.x** - Biblioteca para construção de interfaces
