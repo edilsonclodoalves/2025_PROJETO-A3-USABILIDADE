@@ -34,7 +34,7 @@
 
 ## 🎯Sobre o Projeto
 
-O **Sistema de Gestão para Sorveteria** é uma aplicação web full-stack moderna desenvolvida para otimizar as operações diárias de sorveteria, desde o gerenciamento de produtos até a entrega final ao cliente. O sistema oferece uma experiência completa tanto para administradores quanto para clientes, com interface intuitiva e funcionalidades robustas.
+O **Sistema de Gestão para Sorveteria** é uma aplicação web moderna que otimiza as operações diárias de sorveteria, do gerenciamento de produtos à entrega. Ele oferece uma experiência completa para administradores e clientes, com interface intuitiva e funcionalidades robustas.
 
 ### 🌟Principais Características
 
